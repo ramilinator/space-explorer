@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
@@ -47,8 +47,48 @@ export default function CinematicHero() {
   const countNumber = useRef<HTMLDivElement>(null);
   const progressBar = useRef<HTMLDivElement>(null);
 
+  const countdownState = { value: 10 };
+
+  const [audioOn, setAudioOn] = useState(false);
+
+  const audioEnabled = useRef(false);
+
+  const ambientAudio = useRef<HTMLAudioElement | null>(null);
+  const scanAudio = useRef<HTMLAudioElement | null>(null);
+  const navigationAudio = useRef<HTMLAudioElement | null>(null);
+  const systemAudio = useRef<HTMLAudioElement | null>(null);
+  const countdownAudio = useRef<HTMLAudioElement | null>(null);
+  const ignitionAudio = useRef<HTMLAudioElement | null>(null);
+  const launchAudio = useRef<HTMLAudioElement | null>(null);
+  const whooshAudio = useRef<HTMLAudioElement | null>(null);
+
+  const playSound = (audio: HTMLAudioElement | null, volume = 0.5) => {
+    if (!audioEnabled.current || !audio) return;
+
+    audio.currentTime = 0;
+    audio.volume = volume;
+
+    audio.play().catch(() => {
+      // Browser may block playback until user interaction.
+    });
+  };
+
   useEffect(() => {
     if (!root.current) return;
+
+    ambientAudio.current = new Audio("/sounds/ambient-space.mp3");
+    scanAudio.current = new Audio("/sounds/scan.mp3");
+    navigationAudio.current = new Audio("/sounds/navigation.mp3");
+    systemAudio.current = new Audio("/sounds/system-beep.mp3");
+    countdownAudio.current = new Audio("/sounds/countdown.mp3");
+    ignitionAudio.current = new Audio("/sounds/ignition.mp3");
+    launchAudio.current = new Audio("/sounds/launch.mp3");
+    whooshAudio.current = new Audio("/sounds/whoosh.mp3");
+
+    if (ambientAudio.current) {
+      ambientAudio.current.loop = true;
+      ambientAudio.current.volume = 0.18;
+    }
 
     const context = gsap.context(() => {
       const q = gsap.utils.selector(root);
@@ -134,6 +174,12 @@ export default function CinematicHero() {
           from: "random",
         },
         ease: "sine.inOut",
+      });
+
+      gsap.set(q(".warp-star"), {
+        scaleX: 0,
+        opacity: 0,
+        transformOrigin: "left center",
       });
 
       gsap.to(q(".planet"), {
@@ -228,6 +274,9 @@ export default function CinematicHero() {
         .set(pilot.current, {
           autoAlpha: 1,
         })
+        .call(() => {
+          playSound(scanAudio.current, 0.45);
+        })
         .fromTo(
           spaceship.current,
           {
@@ -299,6 +348,9 @@ export default function CinematicHero() {
         .set(destination.current, {
           autoAlpha: 1,
         })
+        .call(() => {
+          playSound(navigationAudio.current, 0.4);
+        })
         .fromTo(
           q(".map-grid"),
           {
@@ -331,6 +383,9 @@ export default function CinematicHero() {
           yoyo: true,
           ease: "sine.inOut",
         })
+        .call(() => {
+          playSound(navigationAudio.current, 0.35);
+        })
         .to({}, { duration: 0.8 })
         .to(destination.current, {
           autoAlpha: 0,
@@ -361,6 +416,9 @@ export default function CinematicHero() {
           duration: 0.35,
           stagger: 0.22,
           ease: "power2.out",
+          onStart: () => {
+            playSound(systemAudio.current, 0.3);
+          },
         })
         .to(q(".system-progress"), {
           width: "100%",
@@ -402,22 +460,20 @@ export default function CinematicHero() {
           textContent: "10",
         })
         .to({}, { duration: 0.4 })
-        .call(() => {
-          if (!countNumber.current) return;
+        .set(countNumber.current, {
+          textContent: "10",
+        })
+        .to(countdownState, {
+          value: 0,
+          duration: 2.2,
+          ease: "none",
+          onUpdate: () => {
+            if (!countNumber.current) return;
 
-          let current = 10;
-
-          const interval = window.setInterval(() => {
-            current -= 1;
-
-            if (countNumber.current) {
-              countNumber.current.textContent = String(Math.max(current, 0));
-            }
-
-            if (current <= 0) {
-              window.clearInterval(interval);
-            }
-          }, 180);
+            countNumber.current.textContent = String(
+              Math.ceil(countdownState.value),
+            );
+          },
         })
         .to({}, { duration: 2.2 })
         .to(countdown.current, {
@@ -434,6 +490,9 @@ export default function CinematicHero() {
           autoAlpha: 1,
           duration: 0.4,
         })
+        .call(() => {
+          playSound(ignitionAudio.current, 0.7);
+        })
         .to(
           launchGlow.current,
           {
@@ -444,6 +503,10 @@ export default function CinematicHero() {
           },
           "<",
         )
+        .call(() => {
+          playSound(launchAudio.current, 0.9);
+          playSound(whooshAudio.current, 0.55);
+        })
         .to(q(".spaceship"), {
           y: -900,
           scale: 1.35,
@@ -488,6 +551,33 @@ export default function CinematicHero() {
             scale: 4,
             opacity: 0,
             duration: 1.2,
+            ease: "power3.in",
+          },
+          "<",
+        );
+
+      timeline
+        .to(q(".warp-star"), {
+          opacity: 0.8,
+          scaleX: "random(0.5, 3)",
+          duration: 0.8,
+          stagger: {
+            each: 0.015,
+            from: "random",
+          },
+          ease: "power2.out",
+        })
+        .to(
+          q(".warp-star"),
+          {
+            x: "random(-1400, 1400)",
+            y: "random(-900, 900)",
+            scaleX: "random(2, 8)",
+            duration: 1.8,
+            stagger: {
+              each: 0.01,
+              from: "random",
+            },
             ease: "power3.in",
           },
           "<",
@@ -561,9 +651,40 @@ export default function CinematicHero() {
         ))}
       </div>
 
+      <div className="warp-stars pointer-events-none absolute inset-0 z-[4] overflow-hidden">
+        {Array.from({ length: 90 }).map((_, i) => (
+          <span
+            key={i}
+            className="warp-star absolute left-1/2 top-1/2 h-px w-12 origin-left bg-white/70"
+            style={{
+              transform: `rotate(${Math.random() * 360}deg) translateX(${Math.random() * 20}px)`,
+            }}
+          />
+        ))}
+      </div>
+
       {/* =====================================
           TOP HUD
       ====================================== */}
+
+      <button
+        type="button"
+        onClick={() => {
+          const nextState = !audioOn;
+
+          audioEnabled.current = nextState;
+          setAudioOn(nextState);
+
+          if (nextState) {
+            ambientAudio.current?.play().catch(() => {});
+          } else {
+            ambientAudio.current?.pause();
+          }
+        }}
+        className="pointer-events-auto absolute right-6 top-20 z-[70] border border-cyan-300/20 bg-black/30 px-4 py-2 font-mono text-[8px] uppercase tracking-[0.3em] text-cyan-300/70 backdrop-blur-md transition hover:border-cyan-300/50 hover:text-cyan-300 md:right-12"
+      >
+        AUDIO SYSTEM // {audioOn ? "ONLINE" : "OFFLINE"}
+      </button>
 
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-40 flex items-center justify-between px-6 py-6 font-mono text-[10px] tracking-[0.3em] text-white/40 md:px-12">
         <span>RAMIL / EXPLORATION SYSTEM</span>
