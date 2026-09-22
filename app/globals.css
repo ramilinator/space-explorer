@@ -5,6 +5,19 @@
   --foreground: #f8fafc;
 }
 
+:root {
+  --font-ui: var(--font-space);
+  --font-terminal: var(--font-mono);
+}
+
+body {
+  font-family: var(--font-ui), sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-terminal), monospace;
+}
+
 html {
   scroll-behavior: smooth;
   background: var(--background);

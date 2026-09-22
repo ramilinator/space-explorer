@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
+import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Ramil Aoanan — Frontend Developer",
-  description:
-    "Portfolio of Ramil Aoanan — frontend developer creating modern, interactive and performant web experiences.",
-  keywords: [
-    "Ramil Aoanan",
-    "Frontend Developer",
-    "React Developer",
-    "Next.js Developer",
-    "JavaScript Developer",
-    "Web Developer",
-  ],
+  title: "Ramil Aoanan — Developer",
+  description: "Cinematic developer portfolio",
 };
 
 export default function RootLayout({
@@ -22,7 +26,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body
+        className={`${spaceGrotesk.variable} ${jetBrainsMono.variable} bg-[#02030a] text-white antialiased`}
+      >
+        {children}
+      </body>
     </html>
   );
 }

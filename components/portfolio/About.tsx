@@ -39,7 +39,7 @@ export default function About() {
               01 // Mission Profile
             </p>
 
-            <h2 className="mt-5 text-4xl font-light tracking-tight text-white sm:text-6xl">
+            <h2 className="mt-5 text-4xl font-light tracking-[-0.02em] text-white sm:text-6xl">
               Building digital
               <br />
               <span className="text-white/35">experiences.</span>

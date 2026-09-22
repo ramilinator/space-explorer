@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Image from "next/image";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -36,7 +37,7 @@ export default function CinematicHero() {
   const system = useRef<HTMLDivElement>(null);
   const countdown = useRef<HTMLDivElement>(null);
 
-  const planet = useRef<HTMLDivElement>(null);
+  const spaceship = useRef<HTMLDivElement>(null);
   const cockpit = useRef<HTMLDivElement>(null);
   const rocket = useRef<HTMLDivElement>(null);
   const engine = useRef<HTMLDivElement>(null);
@@ -96,9 +97,12 @@ export default function CinematicHero() {
         autoAlpha: 0,
       });
 
-      gsap.set(q(".planet"), {
-        scale: 0.75,
-        autoAlpha: 0.5,
+      gsap.to(q(".spaceship"), {
+        y: -12,
+        duration: 2.8,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
       });
 
       gsap.set(q(".cockpit-frame"), {
@@ -132,10 +136,17 @@ export default function CinematicHero() {
         ease: "sine.inOut",
       });
 
-      gsap.to(q(".planet-glow"), {
-        scale: 1.08,
-        opacity: 0.8,
-        duration: 4,
+      gsap.to(q(".planet"), {
+        y: -12,
+        duration: 2.8,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+      });
+
+      gsap.to(q(".pilot-scan-line"), {
+        top: "100%",
+        duration: 2.8,
         repeat: -1,
         yoyo: true,
         ease: "sine.inOut",
@@ -217,13 +228,21 @@ export default function CinematicHero() {
         .set(pilot.current, {
           autoAlpha: 1,
         })
-        .to(
-          planet.current,
+        .fromTo(
+          spaceship.current,
+          {
+            scale: 0.55,
+            x: 0,
+            y: 80,
+            autoAlpha: 0.25,
+          },
           {
             scale: 1,
+            x: 0,
+            y: 0,
             autoAlpha: 1,
-            duration: 1,
-            ease: "power2.out",
+            duration: 1.5,
+            ease: "power3.out",
           },
           "<",
         )
@@ -252,7 +271,18 @@ export default function CinematicHero() {
         .to(pilot.current, {
           autoAlpha: 0,
           duration: 0.6,
-        });
+        })
+        .to(
+          spaceship.current,
+          {
+            scale: 0.92,
+            y: 15,
+            autoAlpha: 0.65,
+            duration: 0.8,
+            ease: "power2.inOut",
+          },
+          "<",
+        );
 
       /* =======================================
          SCENE 4 — DESTINATION MAP
@@ -315,6 +345,16 @@ export default function CinematicHero() {
         .set(system.current, {
           autoAlpha: 1,
         })
+        .to(
+          spaceship.current,
+          {
+            scale: 0.82,
+            autoAlpha: 0.3,
+            duration: 0.6,
+            ease: "power2.inOut",
+          },
+          "<",
+        )
         .to(q(".system-line"), {
           x: 0,
           autoAlpha: 1,
@@ -341,6 +381,17 @@ export default function CinematicHero() {
         .set(countdown.current, {
           autoAlpha: 1,
         })
+        .to(
+          spaceship.current,
+          {
+            scale: 1,
+            y: 0,
+            autoAlpha: 1,
+            duration: 0.8,
+            ease: "power3.out",
+          },
+          "<",
+        )
         .to(q(".countdown-line"), {
           y: 0,
           autoAlpha: 1,
@@ -379,17 +430,6 @@ export default function CinematicHero() {
       ======================================= */
 
       timeline
-        .set(rocket.current, {
-          autoAlpha: 1,
-          y: 100,
-          scale: 0.8,
-        })
-        .to(rocket.current, {
-          y: 0,
-          scale: 1,
-          duration: 1,
-          ease: "power3.out",
-        })
         .to(q(".launch-status"), {
           autoAlpha: 1,
           duration: 0.4,
@@ -404,7 +444,7 @@ export default function CinematicHero() {
           },
           "<",
         )
-        .to(rocket.current, {
+        .to(q(".spaceship"), {
           y: -900,
           scale: 1.35,
           duration: 2,
@@ -581,21 +621,117 @@ export default function CinematicHero() {
       </div>
 
       {/* =====================================
-          PLANET
+          SPACESHIP
       ====================================== */}
 
       <div
-        ref={planet}
-        className="planet pointer-events-none absolute left-1/2 top-[58%] z-10 h-[35vw] w-[35vw] min-h-[280px] min-w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        ref={spaceship}
+        className="spaceship pointer-events-none absolute left-1/2 top-[58%] z-10 -translate-x-1/2 -translate-y-1/2"
       >
-        <div className="planet-glow absolute -inset-[20%] rounded-full bg-blue-500/20 blur-[80px]" />
+        {/* Atmospheric glow */}
+        <div className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500/10 blur-[110px]" />
 
-        <div className="absolute inset-0 overflow-hidden rounded-full bg-[radial-gradient(circle_at_35%_30%,#526bff_0%,#17245e_35%,#070b22_65%,#010208_100%)] shadow-[0_0_100px_rgba(70,100,255,0.3)]">
-          <div className="absolute inset-[10%] rounded-full bg-[radial-gradient(circle_at_60%_35%,rgba(130,180,255,0.18),transparent_40%)]" />
+        {/* Ground illumination */}
+        <div className="absolute left-1/2 top-[78%] h-10 w-[430px] -translate-x-1/2 rounded-[50%] bg-cyan-400/20 blur-3xl" />
 
-          <div className="absolute left-[20%] top-[25%] h-16 w-32 rotate-12 rounded-full bg-white/5 blur-xl" />
+        <div className="relative h-[300px] w-[520px]">
+          {/* Main hull */}
+          <div
+            className="
+        absolute left-1/2 top-[32%]
+        h-[105px] w-[380px]
+        -translate-x-1/2
+        rounded-[48%_48%_30%_30%]
+        border border-white/20
+        bg-gradient-to-b
+        from-slate-200
+        via-slate-500
+        to-slate-950
+        shadow-[0_25px_70px_rgba(0,0,0,0.8)]
+      "
+          >
+            {/* Hull highlight */}
+            <div className="absolute left-[10%] right-[10%] top-3 h-px bg-white/40" />
 
-          <div className="absolute bottom-[25%] right-[20%] h-20 w-40 -rotate-12 rounded-full bg-violet-400/5 blur-2xl" />
+            {/* Lower hull */}
+            <div className="absolute bottom-0 left-[15%] right-[15%] h-8 rounded-full bg-black/30 blur-sm" />
+
+            {/* Cockpit */}
+            <div
+              className="
+          absolute left-1/2 top-[-38px]
+          h-[65px] w-[145px]
+          -translate-x-1/2
+          rounded-[65%_65%_35%_35%]
+          border border-cyan-300/30
+          bg-gradient-to-b
+          from-cyan-200/30
+          via-blue-500/20
+          to-slate-950
+          shadow-[0_0_45px_rgba(34,211,238,0.2)]
+        "
+            >
+              <div className="absolute inset-2 rounded-[60%_60%_35%_35%] border border-white/10" />
+
+              <div className="absolute bottom-2 left-1/2 h-px w-16 -translate-x-1/2 bg-cyan-300/50 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+            </div>
+
+            {/* Left wing */}
+            <div
+              className="
+          absolute left-[-105px] top-[22px]
+          h-[65px] w-[150px]
+          -skew-x-[28deg]
+          rounded-l-full
+          border border-white/10
+          bg-gradient-to-r from-slate-950 via-slate-800 to-slate-500
+        "
+            />
+
+            {/* Right wing */}
+            <div
+              className="
+          absolute right-[-105px] top-[22px]
+          h-[65px] w-[150px]
+          skew-x-[28deg]
+          rounded-r-full
+          border border-white/10
+          bg-gradient-to-l from-slate-950 via-slate-800 to-slate-500
+        "
+            />
+
+            {/* Left navigation light */}
+            <div className="absolute left-[20%] top-[48%] h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(34,211,238,1)]" />
+
+            {/* Right navigation light */}
+            <div className="absolute right-[20%] top-[48%] h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(34,211,238,1)]" />
+
+            {/* Center reactor */}
+            <div className="absolute bottom-[-7px] left-1/2 h-5 w-24 -translate-x-1/2 rounded-full bg-cyan-300/70 blur-md" />
+
+            <div className="absolute bottom-[-4px] left-1/2 h-2 w-16 -translate-x-1/2 rounded-full bg-white shadow-[0_0_18px_rgba(34,211,238,1)]" />
+          </div>
+
+          {/* Left engine */}
+          <div className="absolute bottom-[82px] left-[92px]">
+            <div className="h-3 w-16 rounded-full bg-cyan-400/40 blur-md" />
+            <div className="absolute inset-0 h-2 w-16 rounded-full bg-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.9)]" />
+          </div>
+
+          {/* Right engine */}
+          <div className="absolute bottom-[82px] right-[92px]">
+            <div className="h-3 w-16 rounded-full bg-cyan-400/40 blur-md" />
+            <div className="absolute inset-0 h-2 w-16 rounded-full bg-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.9)]" />
+          </div>
+
+          {/* Engine glow */}
+          <div className="absolute bottom-[55px] left-1/2 h-16 w-[330px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl" />
+        </div>
+
+        {/* Ship telemetry */}
+        <div className="absolute left-1/2 top-[calc(100%+12px)] -translate-x-1/2 whitespace-nowrap text-center font-mono text-[8px] uppercase tracking-[0.35em] text-white/30">
+          <div>VESSEL // RA-01</div>
+          <div className="mt-1 text-cyan-300/60">DOCKED • SYSTEMS STANDBY</div>
         </div>
       </div>
 
@@ -617,64 +753,169 @@ export default function CinematicHero() {
       </div>
 
       {/* =====================================
-          SCENE 2 — PILOT
-      ====================================== */}
+    SCENE 2 — PILOT IDENTIFIED
+====================================== */}
 
       <div
         ref={pilot}
         className="hero-scene absolute inset-0 z-25 flex items-center justify-center"
       >
-        <div className="grid w-full max-w-5xl grid-cols-1 items-center gap-10 px-6 md:grid-cols-2 md:px-12">
-          {/* Pilot portrait */}
-          <div className="pilot-line relative mx-auto aspect-[4/5] w-full max-w-[300px] overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(90,130,255,0.3),transparent_50%)]" />
+        <div className="grid w-full max-w-6xl grid-cols-1 items-center gap-12 px-6 md:grid-cols-[0.8fr_1.2fr] md:px-12">
+          {/* =================================
+        PILOT PORTRAIT
+    ================================== */}
 
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-36 w-36 items-center justify-center rounded-full border border-cyan-400/30 bg-gradient-to-br from-blue-500/20 to-violet-500/20">
-                <span className="font-mono text-4xl text-white/50">RA</span>
+          <div className="pilot-line relative mx-auto w-full max-w-[340px]">
+            {/* Outer atmospheric glow */}
+            <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/10 blur-[90px]" />
+
+            {/* Identification frame */}
+            <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-cyan-300/20 bg-[#050812]/80 shadow-[0_0_80px_rgba(34,211,238,0.08)]">
+              {/* Grid overlay */}
+              <div
+                className="pointer-events-none absolute inset-0 z-20 opacity-20"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(rgba(100,220,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(100,220,255,.15) 1px, transparent 1px)",
+                  backgroundSize: "35px 35px",
+                }}
+              />
+
+              {/* Sample profile image */}
+              <Image
+                src="/images/profile.png"
+                alt="Pilot profile"
+                fill
+                priority
+                className="object-cover object-center grayscale-[20%]"
+                sizes="340px"
+              />
+
+              {/* Cinematic image overlay */}
+              <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#02040b]/20 via-transparent to-[#02040b]/95" />
+
+              {/* Blue lighting */}
+              <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_50%_30%,rgba(34,211,238,0.15),transparent_45%)]" />
+
+              {/* Scan line */}
+              <div className="pilot-scan-line pointer-events-none absolute left-0 right-0 top-0 z-30 h-px bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.9),0_0_25px_rgba(34,211,238,0.6)]">
+                <div className="absolute left-0 right-0 -top-3 h-7 bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent blur-md" />
+              </div>
+
+              {/* Corner brackets */}
+
+              <div className="absolute left-4 top-4 z-30 h-8 w-8 border-l border-t border-cyan-300/50" />
+
+              <div className="absolute right-4 top-4 z-30 h-8 w-8 border-r border-t border-cyan-300/50" />
+
+              <div className="absolute bottom-4 left-4 z-30 h-8 w-8 border-b border-l border-cyan-300/50" />
+
+              <div className="absolute bottom-4 right-4 z-30 h-8 w-8 border-b border-r border-cyan-300/50" />
+
+              {/* Image metadata */}
+              <div className="absolute left-5 top-5 z-30 font-mono text-[7px] leading-4 tracking-[0.25em] text-white/50">
+                <div>BIOMETRIC SCAN</div>
+                <div className="text-cyan-300">MATCH 100%</div>
+              </div>
+
+              {/* Bottom identification panel */}
+              <div className="cockpit-data absolute bottom-0 left-0 right-0 z-30 p-6">
+                <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.35em] text-cyan-300">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,1)]" />
+                  PILOT IDENTIFIED
+                </div>
+
+                <div className="mt-3 text-2xl font-light text-white">
+                  Ramil Aoanan
+                </div>
+
+                <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.25em] text-white/40">
+                  Flight Commander / Developer
+                </div>
               </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/70 to-transparent p-6">
-              <div className="font-mono text-[9px] uppercase tracking-[0.35em] text-cyan-300">
-                PILOT IDENTIFIED
-              </div>
-
-              <div className="mt-2 text-xl font-medium">Ramil Aoanan</div>
-
-              <div className="mt-1 text-xs text-white/40">
-                Frontend / Full-Stack Developer
-              </div>
+            {/* ID number */}
+            <div className="mt-4 flex items-center justify-between font-mono text-[7px] uppercase tracking-[0.3em] text-white/20">
+              <span>IDENTIFICATION // RA-001</span>
+              <span>VERIFIED</span>
             </div>
           </div>
 
-          {/* Introduction */}
-          <div>
-            <div className="pilot-line font-mono text-[10px] uppercase tracking-[0.4em] text-cyan-300/70">
+          {/* =================================
+        PILOT INFORMATION
+    ================================== */}
+
+          <div className="max-w-xl">
+            <div className="pilot-line flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.35em] text-cyan-300/70">
+              <span className="h-px w-8 bg-cyan-400/50" />
               Flight Commander
             </div>
 
-            <h2 className="pilot-line mt-4 text-4xl font-light leading-tight md:text-6xl">
+            <h2 className="pilot-line mt-5 text-4xl font-light leading-[1.1] tracking-tight md:text-6xl">
               Building digital
               <br />
-              <span className="text-white/40">worlds from code.</span>
+              <span className="text-white/35">worlds from code.</span>
             </h2>
 
-            <p className="pilot-line mt-6 max-w-lg text-sm leading-7 text-white/45">
+            <p className="pilot-line mt-7 max-w-lg text-sm leading-7 text-white/45 md:text-base">
               Welcome aboard. I design and build modern web experiences where
               technology, interaction, and visual storytelling meet.
             </p>
 
-            <div className="pilot-line mt-8 grid grid-cols-2 gap-4 font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">
-              <div className="border-l border-cyan-400/40 pl-4">
-                <span className="block text-white/70">Mission</span>
-                Frontend Engineering
+            {/* Pilot statistics */}
+            <div className="pilot-line mt-10 grid max-w-lg grid-cols-2 gap-x-8 gap-y-6 border-y border-white/10 py-6">
+              <div>
+                <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/25">
+                  Mission
+                </div>
+
+                <div className="mt-2 text-sm text-white/70">
+                  Frontend Engineering
+                </div>
               </div>
 
-              <div className="border-l border-violet-400/40 pl-4">
-                <span className="block text-white/70">Experience</span>
-                Web Development
+              <div>
+                <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/25">
+                  Specialty
+                </div>
+
+                <div className="mt-2 text-sm text-white/70">
+                  Interactive Web
+                </div>
               </div>
+
+              <div>
+                <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/25">
+                  Environment
+                </div>
+
+                <div className="mt-2 text-sm text-white/70">
+                  Next.js / React
+                </div>
+              </div>
+
+              <div>
+                <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/25">
+                  Status
+                </div>
+
+                <div className="mt-2 flex items-center gap-2 text-sm text-cyan-300">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300" />
+                  ONLINE
+                </div>
+              </div>
+            </div>
+
+            {/* System message */}
+            <div className="pilot-line mt-7 flex items-start gap-4 font-mono text-[8px] uppercase leading-5 tracking-[0.2em] text-white/25">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400/60" />
+
+              <span>
+                Pilot authentication successful.
+                <br />
+                Navigation systems synchronized.
+              </span>
             </div>
           </div>
         </div>
@@ -830,47 +1071,6 @@ export default function CinematicHero() {
       </div>
 
       {/* =====================================
-          SCENE 6 — ROCKET
-      ====================================== */}
-
-      <div
-        ref={rocket}
-        className="rocket absolute bottom-[12%] left-1/2 z-50 -translate-x-1/2"
-      >
-        {/* Rocket body */}
-        <div className="relative h-72 w-32">
-          {/* Nose */}
-          <div className="absolute left-1/2 top-0 h-24 w-24 -translate-x-1/2 overflow-hidden rounded-t-[50%] bg-gradient-to-br from-white/90 via-slate-300 to-slate-700">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent" />
-          </div>
-
-          {/* Body */}
-          <div className="absolute bottom-10 left-1/2 h-48 w-24 -translate-x-1/2 rounded-b-[45%] rounded-t-[20%] bg-gradient-to-r from-slate-700 via-white to-slate-500 shadow-[0_0_50px_rgba(100,150,255,0.15)]">
-            <div className="absolute left-1/2 top-12 h-12 w-12 -translate-x-1/2 rounded-full border border-cyan-300/40 bg-cyan-400/10 shadow-[0_0_25px_rgba(80,220,255,0.4)]" />
-
-            <div className="absolute bottom-8 left-1/2 h-12 w-4 -translate-x-1/2 rounded-full bg-slate-800" />
-          </div>
-
-          {/* Left fin */}
-          <div className="absolute bottom-8 left-0 h-20 w-10 -skew-x-12 rounded-bl-xl bg-slate-700" />
-
-          {/* Right fin */}
-          <div className="absolute bottom-8 right-0 h-20 w-10 skew-x-12 rounded-br-xl bg-slate-700" />
-
-          {/* Engine */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-            <div className="engine-flame h-24 w-12 rounded-b-full bg-gradient-to-b from-white via-cyan-300 to-blue-600 blur-[2px]" />
-
-            <div className="absolute left-1/2 top-2 h-24 w-20 -translate-x-1/2 rounded-full bg-blue-500/30 blur-2xl" />
-          </div>
-        </div>
-
-        <div className="launch-status absolute -bottom-20 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.35em] text-cyan-300 opacity-0">
-          Launch sequence initiated
-        </div>
-      </div>
-
-      {/* =====================================
           LAUNCH GLOW
       ====================================== */}
 
@@ -878,12 +1078,6 @@ export default function CinematicHero() {
         ref={launchGlow}
         className="launch-glow pointer-events-none absolute left-1/2 top-[70%] z-40 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/50 blur-[70px]"
       />
-
-      {/* =====================================
-          LAUNCH FLASH
-      ====================================== */}
-
-      <div className="launch-flash pointer-events-none absolute inset-0 z-[60] bg-white opacity-0" />
 
       {/* =====================================
           BOTTOM HUD
