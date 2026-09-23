@@ -86,6 +86,70 @@ const shootingStars = Array.from({ length: 12 }, (_, index) => ({
   angle: 22 + ((index * 13) % 16),
 }));
 
+/* ============================================================
+   SHARED HUD COMPONENTS
+============================================================ */
+
+function HudTitleBar({
+  label,
+  status,
+  accent = "cyan",
+}: {
+  label: string;
+  status: string;
+  accent?: "cyan" | "violet";
+}) {
+  const cyan = accent === "cyan";
+
+  return (
+    <div className="flex h-10 items-center justify-between border-b border-white/10 bg-black/20 px-4 md:px-5">
+      <div className="flex items-center gap-3">
+        <span
+          className={`h-1.5 w-1.5 rounded-full ${
+            cyan ? "bg-cyan-300" : "bg-violet-300"
+          } ${
+            cyan
+              ? "shadow-[0_0_10px_rgba(34,211,238,1)]"
+              : "shadow-[0_0_10px_rgba(167,139,250,1)]"
+          }`}
+        />
+
+        <span className="font-mono text-[8px] uppercase tracking-[0.35em] text-white/55">
+          {label}
+        </span>
+      </div>
+
+      <div
+        className={`flex items-center gap-2 font-mono text-[7px] uppercase tracking-[0.3em] ${
+          cyan ? "text-cyan-300/70" : "text-violet-300/70"
+        }`}
+      >
+        {status}
+
+        <span
+          className={`h-1 w-1 rounded-full ${
+            cyan ? "bg-cyan-300" : "bg-violet-300"
+          }`}
+        />
+      </div>
+    </div>
+  );
+}
+
+function HudCorners() {
+  return (
+    <>
+      <div className="pointer-events-none absolute left-0 top-0 h-8 w-8 border-l border-t border-cyan-300/35" />
+
+      <div className="pointer-events-none absolute right-0 top-0 h-8 w-8 border-r border-t border-cyan-300/35" />
+
+      <div className="pointer-events-none absolute bottom-0 left-0 h-8 w-8 border-b border-l border-cyan-300/35" />
+
+      <div className="pointer-events-none absolute bottom-0 right-0 h-8 w-8 border-b border-r border-cyan-300/35" />
+    </>
+  );
+}
+
 export default function CinematicHero() {
   const root = useRef<HTMLDivElement>(null);
 
@@ -996,34 +1060,55 @@ export default function CinematicHero() {
         </div>
 
         {/* =====================================================
-            WELCOME
-        ====================================================== */}
+            WELCOME SCENE
+        ===================================================== */}
 
         <div
           ref={welcome}
-          className="hero-scene absolute inset-0 z-20 flex items-center justify-center"
+          className="hero-scene absolute inset-0 z-30 flex items-center justify-center px-5"
         >
-          <div className="relative w-full max-w-5xl px-6 text-center">
-            <div className="welcome-line mb-5 font-mono text-[10px] uppercase tracking-[0.5em] text-cyan-300/70">
-              Passenger communication channel
+          <div className="relative w-full max-w-3xl border border-white/10 bg-black/20 backdrop-blur-[2px]">
+            <HudCorners />
+
+            <HudTitleBar
+              label="Passenger Communication"
+              status="Link Established"
+            />
+
+            <div className="welcome-line absolute left-5 top-[52px] font-mono text-[6px] uppercase tracking-[0.3em] text-white/20">
+              CHANNEL // 01
             </div>
 
-            <h1 className="welcome-line text-5xl font-light tracking-tight text-white sm:text-7xl md:text-8xl">
-              Welcome,
-              <br />
-              <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                Traveler.
+            <div className="px-6 py-16 text-center md:px-12 md:py-20">
+              <div className="welcome-line font-mono text-[7px] uppercase tracking-[0.5em] text-cyan-300/60">
+                Deep Space Transit Authority
+              </div>
+
+              <h1 className="welcome-line mt-6 text-4xl font-light tracking-tight md:text-7xl">
+                Welcome,
+                <br />
+                <span className="bg-gradient-to-r from-cyan-200 via-white to-violet-300 bg-clip-text text-transparent">
+                  passenger.
+                </span>
+              </h1>
+
+              <div className="welcome-line mx-auto mt-8 h-px w-24 bg-cyan-300/40" />
+
+              <p className="welcome-line mx-auto mt-7 max-w-lg font-mono text-[7px] uppercase leading-7 tracking-[0.28em] text-white/30">
+                Your interstellar journey is about to begin.
+                <br />
+                Please remain seated while navigation systems initialize.
+              </p>
+            </div>
+
+            <div className="flex h-9 items-center justify-between border-t border-white/10 px-5">
+              <span className="font-mono text-[6px] uppercase tracking-[0.3em] text-white/20">
+                PASSENGER CHANNEL
               </span>
-            </h1>
 
-            <p className="welcome-line mx-auto mt-8 max-w-xl text-sm leading-7 text-white/50 md:text-base">
-              Your journey through the digital universe is about to begin.
-            </p>
-
-            <div className="welcome-line mx-auto mt-10 flex items-center justify-center gap-4 font-mono text-[9px] uppercase tracking-[0.35em] text-white/30">
-              <span className="h-px w-12 bg-white/20" />
-              Prepare for departure
-              <span className="h-px w-12 bg-white/20" />
+              <span className="font-mono text-[6px] uppercase tracking-[0.3em] text-cyan-300/50">
+                READY
+              </span>
             </div>
           </div>
         </div>
@@ -1123,298 +1208,476 @@ export default function CinematicHero() {
         </div>
 
         {/* =====================================================
-            PILOT
-        ====================================================== */}
+            PILOT SCENE
+        ===================================================== */}
 
         <div
           ref={pilot}
-          className="hero-scene absolute inset-0 z-25 flex items-center justify-center"
+          className="hero-scene absolute inset-0 z-30 flex items-center justify-center px-5"
         >
-          <div className="grid w-full max-w-6xl grid-cols-1 items-center gap-12 px-6 md:grid-cols-[0.8fr_1.2fr] md:px-12">
-            {/* PORTRAIT */}
+          <div className="relative w-full max-w-5xl border border-white/10 bg-black/20 backdrop-blur-[2px]">
+            <HudCorners />
 
-            <div className="pilot-line relative mx-auto w-full max-w-[340px]">
-              <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/10 blur-[90px]" />
+            <HudTitleBar label="Crew Identification" status="Profile Active" />
 
-              <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-cyan-300/20 bg-[#050812]/80 shadow-[0_0_80px_rgba(34,211,238,0.08)]">
-                <div
-                  className="pointer-events-none absolute inset-0 z-20 opacity-20"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(rgba(100,220,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(100,220,255,.15) 1px, transparent 1px)",
-                    backgroundSize: "35px 35px",
-                  }}
-                />
+            <div className="grid md:grid-cols-[280px_1fr]">
+              {/* Pilot portrait */}
 
-                <Image
-                  src="/images/profile.png"
-                  alt="Pilot profile"
-                  fill
-                  priority
-                  className="object-cover object-center grayscale-[20%]"
-                  sizes="340px"
-                />
+              <div className="pilot-line relative flex min-h-[310px] items-center justify-center border-b border-white/10 md:border-b-0 md:border-r">
+                <div className="relative h-56 w-44 overflow-hidden border border-white/10 bg-black/30">
+                  <div className="absolute inset-0 bg-gradient-to-b from-cyan-300/[0.08] via-transparent to-black/70" />
 
-                <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#02040b]/20 via-transparent to-[#02040b]/95" />
+                  {/* Portrait placeholder */}
 
-                <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_50%_30%,rgba(34,211,238,0.15),transparent_45%)]" />
+                  <Image
+                    src="/images/profile.png"
+                    alt="Pilot profile"
+                    fill
+                    priority
+                    className="object-cover object-center grayscale-[20%]"
+                    sizes="340px"
+                  />
 
-                <div className="pilot-scan-line pointer-events-none absolute left-0 right-0 top-0 z-30 h-px bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.9),0_0_25px_rgba(34,211,238,0.6)]">
-                  <div className="absolute -top-3 left-0 right-0 h-7 bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent blur-md" />
-                </div>
+                  {/* Scan */}
 
-                <div className="absolute left-4 top-4 z-30 h-8 w-8 border-l border-t border-cyan-300/50" />
+                  <div className="pilot-scan-line absolute left-0 top-0 h-px w-full bg-cyan-300/70 shadow-[0_0_10px_rgba(34,211,238,.8)]" />
 
-                <div className="absolute right-4 top-4 z-30 h-8 w-8 border-r border-t border-cyan-300/50" />
-
-                <div className="absolute bottom-4 left-4 z-30 h-8 w-8 border-b border-l border-cyan-300/50" />
-
-                <div className="absolute bottom-4 right-4 z-30 h-8 w-8 border-b border-r border-cyan-300/50" />
-
-                <div className="absolute left-5 top-5 z-30 font-mono text-[7px] leading-4 tracking-[0.25em] text-white/50">
-                  <div>BIOMETRIC SCAN</div>
-                  <div className="text-cyan-300">MATCH 100%</div>
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 z-30 p-6">
-                  <div className="flex items-center gap-2 font-mono text-[9px] tracking-[0.35em] text-cyan-300">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,1)]" />
-                    PILOT IDENTIFIED
+                  <div className="absolute bottom-3 left-3 font-mono text-[5px] uppercase tracking-[0.25em] text-cyan-300/60">
+                    BIOMETRIC LOCK
                   </div>
 
-                  <div className="mt-3 text-2xl font-light text-white">
-                    Ramil Aoanan
-                  </div>
-
-                  <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.25em] text-white/40">
-                    Flight Commander / Developer
+                  <div className="absolute bottom-3 right-3 font-mono text-[5px] text-white/20">
+                    01
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between font-mono text-[7px] uppercase tracking-[0.3em] text-white/20">
-                <span>IDENTIFICATION // RA-001</span>
+              {/* Pilot information */}
 
-                <span>VERIFIED</span>
+              <div className="flex flex-col justify-center px-7 py-10 md:px-12">
+                <div className="pilot-line font-mono text-[7px] uppercase tracking-[0.35em] text-white/25">
+                  Mission Commander
+                </div>
+
+                <h2 className="pilot-line mt-4 text-4xl font-light tracking-tight md:text-6xl">
+                  Ramil
+                  <br />
+                  <span className="text-white/30">Aoanan.</span>
+                </h2>
+
+                <div className="pilot-line mt-7 h-px w-24 bg-cyan-300/40" />
+
+                <p className="pilot-line mt-7 max-w-xl font-mono text-[7px] uppercase leading-7 tracking-[0.25em] text-white/30">
+                  Full-stack developer and technical writer.
+                  <br />
+                  Frontend systems / interface architecture / digital
+                  exploration.
+                </p>
+
+                <div className="pilot-line mt-9 grid grid-cols-2 gap-6 border-t border-white/10 pt-6 md:grid-cols-3">
+                  <div>
+                    <div className="font-mono text-[5px] uppercase tracking-[0.3em] text-white/20">
+                      Clearance
+                    </div>
+
+                    <div className="mt-2 font-mono text-[7px] text-cyan-300/70">
+                      LEVEL 07
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="font-mono text-[5px] uppercase tracking-[0.3em] text-white/20">
+                      Role
+                    </div>
+
+                    <div className="mt-2 font-mono text-[7px] text-white/60">
+                      PILOT
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="font-mono text-[5px] uppercase tracking-[0.3em] text-white/20">
+                      Status
+                    </div>
+
+                    <div className="mt-2 font-mono text-[7px] text-cyan-300/70">
+                      ACTIVE
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* INFORMATION */}
+            <div className="flex h-9 items-center justify-between border-t border-white/10 px-5">
+              <span className="font-mono text-[6px] uppercase tracking-[0.25em] text-white/20">
+                CREW DATABASE
+              </span>
 
-            <div className="max-w-xl">
-              <div className="pilot-line flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.35em] text-cyan-300/70">
-                <span className="h-px w-8 bg-cyan-400/50" />
-                Flight Commander
-              </div>
-
-              <h2 className="pilot-line mt-5 text-4xl font-light leading-[1.1] tracking-tight md:text-6xl">
-                Building digital
-                <br />
-                <span className="text-white/35">worlds from code.</span>
-              </h2>
-
-              <p className="pilot-line mt-7 max-w-lg text-sm leading-7 text-white/45 md:text-base">
-                Welcome aboard. I design and build modern web experiences where
-                technology, interaction, and visual storytelling meet.
-              </p>
-
-              <div className="pilot-line mt-10 grid max-w-lg grid-cols-2 gap-x-8 gap-y-6 border-y border-white/10 py-6">
-                <div>
-                  <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/25">
-                    Mission
-                  </div>
-
-                  <div className="mt-2 text-sm text-white/70">
-                    Frontend Engineering
-                  </div>
-                </div>
-
-                <div>
-                  <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/25">
-                    Specialty
-                  </div>
-
-                  <div className="mt-2 text-sm text-white/70">
-                    Interactive Web
-                  </div>
-                </div>
-
-                <div>
-                  <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/25">
-                    Environment
-                  </div>
-
-                  <div className="mt-2 text-sm text-white/70">
-                    Next.js / React
-                  </div>
-                </div>
-
-                <div>
-                  <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/25">
-                    Status
-                  </div>
-
-                  <div className="mt-2 flex items-center gap-2 text-sm text-cyan-300">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300" />
-                    ONLINE
-                  </div>
-                </div>
-              </div>
-
-              <div className="pilot-line mt-7 flex items-start gap-4 font-mono text-[8px] uppercase leading-5 tracking-[0.2em] text-white/25">
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400/60" />
-
-                <span>
-                  Pilot authentication successful.
-                  <br />
-                  Navigation systems synchronized.
-                </span>
-              </div>
+              <span className="font-mono text-[6px] uppercase tracking-[0.25em] text-cyan-300/50">
+                VERIFIED
+              </span>
             </div>
           </div>
         </div>
 
         {/* =====================================================
-            DESTINATION
-        ====================================================== */}
+    DESTINATION SCENE — COMPACT HUD
+===================================================== */}
 
         <div
           ref={destination}
-          className="hero-scene absolute inset-0 z-30 flex items-center justify-center"
+          className="hero-scene absolute inset-0 z-30 flex items-center justify-center px-5"
         >
-          <div className="w-full max-w-5xl px-6 md:px-12">
-            <div className="destination-line text-center font-mono text-[10px] uppercase tracking-[0.5em] text-cyan-300/70">
-              Navigation System
+          <div className="relative w-full max-w-4xl border border-white/10 bg-black/20 backdrop-blur-[2px]">
+            <HudCorners />
+
+            {/* TITLE BAR */}
+
+            <HudTitleBar
+              label="Navigation System"
+              status="Auto Nav // Online"
+            />
+
+            {/* HEADER */}
+
+            <div className="destination-line flex items-end justify-between px-5 pb-4 pt-6 md:px-6">
+              <div>
+                <div className="font-mono text-[6px] uppercase tracking-[0.35em] text-white/25">
+                  Mission Navigation
+                </div>
+
+                <h2 className="mt-2 text-3xl font-light tracking-tight md:text-4xl">
+                  Destination
+                  <span className="text-white/30"> acquisition.</span>
+                </h2>
+              </div>
+
+              <div className="hidden text-right md:block">
+                <div className="font-mono text-[6px] uppercase tracking-[0.3em] text-white/25">
+                  Navigation Status
+                </div>
+
+                <div className="mt-1 flex items-center justify-end gap-2 font-mono text-[7px] uppercase tracking-[0.25em] text-cyan-300">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,1)]" />
+                  TARGET LOCKED
+                </div>
+              </div>
             </div>
 
-            <h2 className="destination-line mt-4 text-center text-4xl font-light md:text-6xl">
-              Select destination
-            </h2>
+            {/* MAP */}
 
-            <div className="map-grid relative mx-auto mt-12 h-[360px] max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02]">
+            <div className="destination-line relative mx-5 h-[280px] overflow-hidden border border-white/10 bg-black/20 md:mx-6 md:h-[300px]">
+              {/* GRID */}
+
               <div
-                className="absolute inset-0 opacity-20"
+                className="map-grid absolute inset-0 opacity-20"
                 style={{
                   backgroundImage:
-                    "linear-gradient(rgba(100,180,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(100,180,255,.3) 1px, transparent 1px)",
-                  backgroundSize: "50px 50px",
+                    "linear-gradient(rgba(100,180,255,.25) 1px, transparent 1px), linear-gradient(90deg, rgba(100,180,255,.25) 1px, transparent 1px)",
+                  backgroundSize: "40px 40px",
                 }}
               />
 
-              <div className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-400/20" />
+              {/* CROSSHAIR */}
 
-              <div className="absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-400/20" />
+              <div className="pointer-events-none absolute left-0 right-0 top-1/2 h-px bg-cyan-300/10" />
 
-              <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-300 shadow-[0_0_25px_rgba(80,220,255,1)]" />
+              <div className="pointer-events-none absolute bottom-0 left-1/2 top-0 w-px bg-cyan-300/10" />
+
+              {/* RADAR RINGS */}
+
+              <div className="absolute left-1/2 top-1/2 h-[190px] w-[190px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/10" />
+
+              <div className="absolute left-1/2 top-1/2 h-[135px] w-[135px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/15" />
+
+              <div className="absolute left-1/2 top-1/2 h-[75px] w-[75px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/20" />
+
+              {/* NAVIGATION VECTORS */}
+
+              <div className="absolute left-1/2 top-1/2 h-[210px] w-px -translate-x-1/2 -translate-y-1/2 rotate-45 bg-gradient-to-b from-transparent via-cyan-300/10 to-transparent" />
+
+              <div className="absolute left-1/2 top-1/2 h-[210px] w-px -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-gradient-to-b from-transparent via-cyan-300/10 to-transparent" />
+
+              {/* ORIGIN */}
+
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/5 blur-xl" />
+
+                <div className="relative flex h-6 w-6 items-center justify-center rounded-full border border-cyan-300/30">
+                  <div className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(80,220,255,1)]" />
+                </div>
+
+                <div className="absolute left-1/2 top-8 -translate-x-1/2 whitespace-nowrap font-mono text-[5px] uppercase tracking-[0.3em] text-white/25">
+                  ORIGIN
+                </div>
+              </div>
+
+              {/* DESTINATION TARGET */}
 
               <div className="map-target absolute left-[68%] top-[30%]">
-                <div className="relative flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/40 bg-cyan-300/10">
-                  <div className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_15px_rgba(80,220,255,1)]" />
+                <div className="relative flex h-11 w-11 items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border border-cyan-300/20" />
+
+                  <div className="absolute inset-2 rounded-full border border-cyan-300/30" />
+
+                  <div className="absolute inset-4 rounded-full border border-cyan-300/50" />
+
+                  <div className="relative h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_16px_rgba(80,220,255,1)]" />
                 </div>
 
-                <div className="absolute left-12 top-1 whitespace-nowrap font-mono text-[9px] tracking-[0.25em] text-cyan-300">
-                  <span ref={selectedDestination}>{selectedMission.name}</span>
+                {/* TARGET CROSSHAIR */}
+
+                <div className="absolute left-1/2 top-1/2 h-px w-12 -translate-x-1/2 bg-cyan-300/30" />
+
+                <div className="absolute left-1/2 top-1/2 h-12 w-px -translate-y-1/2 bg-cyan-300/30" />
+
+                {/* TARGET DATA */}
+
+                <div className="absolute left-12 top-0 whitespace-nowrap">
+                  <div className="font-mono text-[6px] uppercase tracking-[0.3em] text-cyan-300">
+                    <span ref={selectedDestination}>
+                      {selectedMission.name}
+                    </span>
+                  </div>
+
+                  <div className="mt-1 font-mono text-[5px] uppercase tracking-[0.25em] text-white/30">
+                    TARGET // {selectedMission.code}
+                  </div>
+
+                  <div className="mt-1 font-mono text-[5px] uppercase tracking-[0.25em] text-white/20">
+                    DIST // {selectedMission.distance}
+                  </div>
                 </div>
               </div>
 
-              <div className="absolute left-5 top-5 font-mono text-[8px] leading-5 tracking-[0.2em] text-white/30">
-                <div>GALACTIC NAVIGATION</div>
-                <div>SECTOR {selectedMission.code}</div>
-                <div>SCANNING...</div>
+              {/* VECTOR LINE */}
+
+              <div className="absolute left-[52%] top-[48%] h-px w-[17%] origin-left rotate-[-18deg] bg-gradient-to-r from-cyan-300/10 via-cyan-300/30 to-cyan-300/70">
+                <div className="absolute right-0 top-1/2 h-1 w-1 -translate-y-1/2 rotate-45 border-r border-t border-cyan-300/80" />
               </div>
 
-              <div className="absolute bottom-5 right-5 text-right font-mono text-[8px] leading-5 tracking-[0.2em] text-white/30">
-                <div>VECTOR LOCK</div>
-                <div className="text-cyan-300">ACTIVE</div>
+              {/* TOP LEFT TELEMETRY */}
+
+              <div className="absolute left-4 top-4 font-mono text-[5px] uppercase leading-4 tracking-[0.2em] text-white/30">
+                <div className="text-cyan-300/60">GALACTIC NAVIGATION</div>
+
+                <div>SECTOR // {selectedMission.code}</div>
+
+                <div>VECTOR // CALCULATED</div>
+
+                <div>TRAJECTORY // OPTIMAL</div>
+              </div>
+
+              {/* TOP RIGHT TELEMETRY */}
+
+              <div className="absolute right-4 top-4 text-right font-mono text-[5px] uppercase leading-4 tracking-[0.2em] text-white/30">
+                <div>SCAN // ACTIVE</div>
+
+                <div>SIGNAL // STABLE</div>
+
+                <div className="text-cyan-300/60">LOCK // CONFIRMED</div>
+              </div>
+
+              {/* BOTTOM LEFT */}
+
+              <div className="absolute bottom-4 left-4 font-mono text-[5px] uppercase tracking-[0.2em] text-white/25">
+                <div>DESTINATION</div>
+
+                <div className="mt-1 text-cyan-300/70">
+                  {selectedMission.name}
+                </div>
+              </div>
+
+              {/* BOTTOM RIGHT */}
+
+              <div className="absolute bottom-4 right-4 text-right font-mono text-[5px] uppercase tracking-[0.2em] text-white/25">
+                <div>NAVIGATION</div>
+
+                <div className="mt-1 text-cyan-300/70">AUTONOMOUS</div>
+              </div>
+
+              {/* CENTER STATUS */}
+
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[5px] uppercase tracking-[0.3em] text-white/20">
+                <span className="mr-2 inline-block h-1 w-1 rounded-full bg-cyan-400" />
+                MATRIX SYNCHRONIZED
               </div>
             </div>
 
-            <div className="destination-line mt-6 text-center font-mono text-[9px] uppercase tracking-[0.3em] text-white/35">
-              Automated destination selection engaged
-              <span className="mx-2 text-white/10">//</span>
-              {selectedMission.distance}
+            {/* TELEMETRY STRIP */}
+
+            <div className="destination-line mx-5 mt-4 grid grid-cols-3 border-y border-white/10 md:mx-6">
+              <div className="border-r border-white/10 px-4 py-3">
+                <div className="font-mono text-[5px] uppercase tracking-[0.3em] text-white/25">
+                  Destination
+                </div>
+
+                <div className="mt-1 text-xs font-light text-white/70">
+                  {selectedMission.name}
+                </div>
+              </div>
+
+              <div className="border-r border-white/10 px-4 py-3">
+                <div className="font-mono text-[5px] uppercase tracking-[0.3em] text-white/25">
+                  Distance
+                </div>
+
+                <div className="mt-1 text-xs font-light text-white/70">
+                  {selectedMission.distance}
+                </div>
+              </div>
+
+              <div className="px-4 py-3">
+                <div className="font-mono text-[5px] uppercase tracking-[0.3em] text-white/25">
+                  Status
+                </div>
+
+                <div className="mt-1 flex items-center gap-2 font-mono text-[6px] text-cyan-300">
+                  <span className="h-1 w-1 animate-pulse rounded-full bg-cyan-300 shadow-[0_0_6px_rgba(34,211,238,1)]" />
+                  LOCKED
+                </div>
+              </div>
+            </div>
+
+            {/* FOOTER */}
+
+            <div className="destination-line flex items-center justify-between px-5 py-4 font-mono text-[5px] uppercase tracking-[0.25em] text-white/20 md:px-6">
+              <span>{selectedMission.description}</span>
+
+              <span className="hidden md:block">
+                AUTO DESTINATION SELECTION
+              </span>
             </div>
           </div>
         </div>
 
         {/* =====================================================
             SYSTEM CHECK
-        ====================================================== */}
+        ===================================================== */}
 
         <div
           ref={system}
-          className="hero-scene absolute inset-0 z-30 flex items-center justify-center"
+          className="hero-scene absolute inset-0 z-30 flex items-center justify-center px-5"
         >
-          <div className="w-full max-w-3xl px-6">
-            <div className="system-line mb-3 font-mono text-[10px] uppercase tracking-[0.45em] text-cyan-300">
-              Ship Diagnostics
+          <div className="relative w-full max-w-4xl border border-white/10 bg-black/20 backdrop-blur-[2px]">
+            <HudCorners />
+
+            <HudTitleBar
+              label="Spacecraft Diagnostics"
+              status="System Scan // Running"
+            />
+
+            <div className="system-line px-6 pb-5 pt-8 md:px-9">
+              <div className="font-mono text-[6px] uppercase tracking-[0.35em] text-white/25">
+                Pre-flight diagnostic sequence
+              </div>
+
+              <h2 className="mt-3 text-4xl font-light md:text-5xl">
+                Systems
+                <span className="text-white/30"> check.</span>
+              </h2>
             </div>
 
-            <h2 className="system-line text-4xl font-light md:text-6xl">
-              System check
-            </h2>
-
-            <div className="mt-10 overflow-hidden rounded-2xl border border-white/10 bg-black/30 backdrop-blur-md">
+            <div className="px-6 pb-7 md:px-9">
               {[
-                ["Navigation Core", "READY"],
-                ["Quantum Drive", "READY"],
-                ["Life Support", "READY"],
-                ["Navigation Matrix", "READY"],
-                ["Communication", "READY"],
-                ["Launch Sequence", "ARMED"],
-              ].map(([label, status], index) => (
+                ["PROPULSION", "THRUST ARRAY"],
+                ["NAVIGATION", "GUIDANCE CORE"],
+                ["LIFE SUPPORT", "ENVIRONMENTAL"],
+                ["COMMUNICATION", "DEEP SPACE LINK"],
+              ].map(([name, detail]) => (
                 <div
-                  key={label}
-                  className="system-line flex items-center justify-between border-b border-white/5 px-5 py-4 last:border-b-0"
+                  key={name}
+                  className="system-line border-t border-white/10 py-5"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="font-mono text-[9px] text-white/20">
-                      0{index + 1}
-                    </span>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="font-mono text-[7px] tracking-[0.25em] text-white/60">
+                        {name}
+                      </div>
 
-                    <span className="text-sm text-white/60">{label}</span>
+                      <div className="mt-1 font-mono text-[5px] uppercase tracking-[0.2em] text-white/20">
+                        {detail}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-[6px] text-cyan-300/70">
+                        100%
+                      </span>
+
+                      <span className="flex h-5 w-5 items-center justify-center border border-cyan-300/20 text-[8px] text-cyan-300">
+                        ✓
+                      </span>
+                    </div>
                   </div>
 
-                  <span className="font-mono text-[9px] tracking-[0.2em] text-cyan-300">
-                    {status}
-                  </span>
+                  <div className="mt-4 h-px bg-white/5">
+                    <div className="system-progress h-px w-0 bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,.6)]" />
+                  </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 h-px overflow-hidden bg-white/10">
-              <div className="system-progress h-full w-0 bg-gradient-to-r from-cyan-400 to-violet-400" />
-            </div>
+            <div className="flex h-9 items-center justify-between border-t border-white/10 px-5">
+              <span className="font-mono text-[6px] uppercase tracking-[0.25em] text-white/20">
+                DIAGNOSTIC ENGINE
+              </span>
 
-            <div className="system-line mt-4 flex justify-between font-mono text-[8px] uppercase tracking-[0.25em] text-white/30">
-              <span>All systems nominal</span>
-              <span>Launch authorized</span>
+              <span className="font-mono text-[6px] uppercase tracking-[0.25em] text-cyan-300/60">
+                ALL SYSTEMS NOMINAL
+              </span>
             </div>
           </div>
         </div>
 
         {/* =====================================================
             COUNTDOWN
-        ====================================================== */}
+        ===================================================== */}
 
         <div
           ref={countdown}
-          className="hero-scene absolute inset-0 z-40 flex items-center justify-center"
+          className="hero-scene absolute inset-0 z-30 flex items-center justify-center px-5"
         >
-          <div className="text-center">
-            <div className="countdown-line font-mono text-[10px] uppercase tracking-[0.5em] text-cyan-300/70">
-              Launch sequence
+          <div className="relative w-full max-w-2xl border border-white/10 bg-black/20 backdrop-blur-[2px]">
+            <HudCorners />
+
+            <HudTitleBar
+              label="Launch Control"
+              status="Sequence Armed"
+              accent="violet"
+            />
+
+            <div className="countdown-line px-6 py-14 text-center md:px-10 md:py-16">
+              <div className="font-mono text-[7px] uppercase tracking-[0.45em] text-violet-300/60">
+                Final Departure Sequence
+              </div>
+
+              <div
+                ref={countNumber}
+                className="mt-6 text-[110px] font-extralight leading-none tracking-[-0.08em] text-white drop-shadow-[0_0_30px_rgba(255,255,255,.15)] md:text-[160px]"
+              >
+                10
+              </div>
+
+              <div className="mt-5 flex items-center justify-center gap-3">
+                <span className="h-px w-10 bg-violet-300/30" />
+
+                <span className="font-mono text-[7px] uppercase tracking-[0.4em] text-white/25">
+                  T-MINUS
+                </span>
+
+                <span className="h-px w-10 bg-violet-300/30" />
+              </div>
             </div>
 
-            <div
-              ref={countNumber}
-              className="countdown-line mt-5 text-[12rem] font-extralight leading-none tracking-tighter text-white md:text-[18rem]"
-            >
-              10
-            </div>
+            <div className="flex h-9 items-center justify-between border-t border-white/10 px-5">
+              <span className="font-mono text-[6px] uppercase tracking-[0.25em] text-white/20">
+                LAUNCH AUTHORIZATION
+              </span>
 
-            <div className="countdown-line mt-5 font-mono text-[9px] uppercase tracking-[0.4em] text-white/30">
-              Prepare for ignition
+              <span className="font-mono text-[6px] uppercase tracking-[0.25em] text-violet-300/60">
+                CLEARED
+              </span>
             </div>
           </div>
         </div>
