@@ -34,12 +34,23 @@ const destinations = [
  * We intentionally don't use Math.random() during render.
  * That prevents hydration mismatches in Next.js.
  */
-const normalStars = Array.from({ length: 120 }, (_, index) => ({
-  left: `${(index * 47.37) % 100}%`,
-  top: `${(index * 83.21) % 100}%`,
-  size: `${1 + (index % 2)}px`,
-  opacity: 0.25 + ((index * 17) % 70) / 100,
-}));
+const normalStars = Array.from({ length: 150 }, (_, index) => {
+  const top = (index * 83.21) % 100;
+
+  const horizonFade = top < 48 ? 1 : top < 65 ? 0.75 : top < 80 ? 0.4 : 0.12;
+
+  const opacity = (0.25 + ((index * 17) % 70) / 100) * horizonFade;
+
+  return {
+    left: `${(index * 47.37) % 100}%`,
+    top: `${top}%`,
+    size: `${1 + (index % 3) * 0.5}px`,
+    opacity,
+    twinkle: index % 4 !== 0,
+    duration: 2.5 + ((index * 19) % 45) / 10,
+    delay: ((index * 13) % 50) / 10,
+  };
+});
 
 /*
  * Warp stars are distributed around a circular origin.
@@ -62,9 +73,23 @@ const warpStars = Array.from({ length: 110 }, (_, index) => {
   };
 });
 
+const shootingStars = Array.from({ length: 12 }, (_, index) => ({
+  top: 5 + ((index * 17.37) % 58),
+  left: -18 + ((index * 31.17) % 118),
+
+  delay: index * 4.8 + ((index * 7) % 6),
+
+  duration: 0.9 + ((index * 11) % 9) / 10,
+
+  length: 70 + ((index * 37) % 120),
+
+  angle: 22 + ((index * 13) % 16),
+}));
+
 export default function CinematicHero() {
   const root = useRef<HTMLDivElement>(null);
 
+  const shootingStarLayer = useRef<HTMLDivElement>(null);
   const welcome = useRef<HTMLDivElement>(null);
   const pilot = useRef<HTMLDivElement>(null);
   const destination = useRef<HTMLDivElement>(null);
@@ -221,29 +246,6 @@ export default function CinematicHero() {
       });
 
       /*
-       * Warp layer begins completely invisible.
-       */
-
-      gsap.set(q(".warp-stars"), {
-        autoAlpha: 0,
-      });
-
-      gsap.set(q(".warp-star"), {
-        opacity: 0,
-        scaleX: 0.05,
-        transformOrigin: "left center",
-      });
-
-      gsap.set(q(".warp-core"), {
-        scale: 0.2,
-        opacity: 0,
-      });
-
-      gsap.set(q(".warp-vignette"), {
-        opacity: 0,
-      });
-
-      /*
        * =======================================================
        * AMBIENT STAR ANIMATION
        * =======================================================
@@ -260,7 +262,17 @@ export default function CinematicHero() {
         },
         ease: "sine.inOut",
       });
-
+      gsap.to(".hero-star-layer .star", {
+        y: -10,
+        duration: 12,
+        stagger: {
+          each: 0.03,
+          from: "random",
+        },
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+      });
       /*
        * =======================================================
        * PILOT SCAN
@@ -669,86 +681,15 @@ export default function CinematicHero() {
           },
           "<",
         );
-
-      /*
-       * =======================================================
-       * SCENE 8 — WARP FIELD ACTIVATION
-       * =======================================================
-       *
-       * IMPORTANT:
-       *
-       * The warp stars activate BEFORE the spaceship starts
-       * leaving the screen.
-       *
-       * This creates acceleration instead of simply moving
-       * the ship upward.
-       */
-
-      timeline
-        .to(q(".warp-stars"), {
-          autoAlpha: 1,
-          duration: 0.2,
-        })
-        .to(q(".warp-star"), {
-          opacity: "random(0.45, 0.95)",
-          scaleX: "random(0.8, 2)",
-          duration: 0.45,
-          stagger: {
-            each: 0.006,
-            from: "random",
-          },
-          ease: "power2.out",
-        })
-        .to(
-          q(".warp-core"),
-          {
-            opacity: 0.7,
-            scale: 1,
-            duration: 0.5,
-            ease: "power2.out",
-          },
-          "<",
-        )
-        .to(
-          q(".warp-vignette"),
-          {
-            opacity: 0.65,
-            duration: 0.5,
-          },
-          "<",
-        );
-
-      /*
-       * =======================================================
-       * SCENE 9 — ACCELERATION
-       * =======================================================
-       */
-
-      timeline.to(q(".warp-star"), {
-        x: (index) => {
-          const star = warpStars[index % warpStars.length];
-
-          return Math.cos(star.angle) * 1050;
+      timeline.to(
+        shootingStarLayer.current,
+        {
+          autoAlpha: 0,
+          duration: 0.8,
+          ease: "power2.inOut",
         },
-
-        y: (index) => {
-          const star = warpStars[index % warpStars.length];
-
-          return Math.sin(star.angle) * 1050;
-        },
-
-        scaleX: "random(3, 7)",
-        opacity: "random(0.7, 1)",
-
-        duration: 1.45,
-
-        stagger: {
-          each: 0.006,
-          from: "random",
-        },
-
-        ease: "power3.in",
-      });
+        "<",
+      );
 
       /*
        * =======================================================
@@ -799,16 +740,6 @@ export default function CinematicHero() {
             ease: "power3.in",
           },
           "-=1.1",
-        )
-        .to(
-          q(".warp-star"),
-          {
-            scaleX: 10,
-            opacity: 0.95,
-            duration: 0.7,
-            ease: "power4.in",
-          },
-          "-=0.8",
         );
 
       /*
@@ -962,50 +893,61 @@ export default function CinematicHero() {
             NORMAL STARS
         ====================================================== */}
 
-        <div className="hero-star-layer pointer-events-none absolute inset-0">
+        <div className="hero-star-layer pointer-events-none absolute inset-0 overflow-hidden">
           {normalStars.map((star, index) => (
             <span
               key={index}
-              className="star absolute rounded-full bg-white"
+              className={`star absolute rounded-full bg-white ${
+                star.twinkle ? "star-twinkle" : ""
+              }`}
               style={{
                 width: star.size,
                 height: star.size,
                 left: star.left,
                 top: star.top,
                 opacity: star.opacity,
+                animationDuration: `${star.duration}s`,
+                animationDelay: `${star.delay}s`,
               }}
             />
           ))}
         </div>
 
         {/* =====================================================
-            WARP STAR FIELD
+            SHOOTING STARS
         ====================================================== */}
 
-        <div className="warp-stars pointer-events-none absolute inset-0 z-[4] overflow-hidden">
-          {warpStars.map((star, index) => {
-            const x = Math.cos(star.angle) * star.radius;
-            const y = Math.sin(star.angle) * star.radius;
+        <div
+          ref={shootingStarLayer}
+          className="shooting-star-layer pointer-events-none absolute inset-0 z-[2] overflow-hidden"
+        >
+          {shootingStars.map((star, index) => (
+            <span
+              key={index}
+              className="shooting-star"
+              style={{
+                top: `${star.top}%`,
+                left: `${star.left}%`,
+                width: `${star.length}px`,
+                animationDelay: `${star.delay}s`,
+                animationDuration: `${star.duration}s`,
+                transform: `rotate(${star.angle}deg)`,
+              }}
+            >
+              <span className="shooting-star-head" />
+            </span>
+          ))}
+        </div>
 
-            return (
-              <span
-                key={index}
-                className="warp-star absolute left-1/2 top-1/2 h-px rounded-full bg-cyan-100 shadow-[0_0_8px_rgba(165,243,252,0.9)]"
-                style={{
-                  width: `${star.width}px`,
-                  transform: `translate(${x}px, ${y}px) rotate(${star.angle}rad)`,
-                }}
-              />
-            );
-          })}
+        {/* =====================================================
+             Horizon atmosphere
+        ====================================================== */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-[48%]">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#010208] via-[#010208]/90 to-transparent" />
 
-          {/* Hyperspace core */}
+          <div className="absolute bottom-[18%] left-1/2 h-[18vh] w-[85vw] -translate-x-1/2 rounded-[50%] bg-cyan-500/[0.025] blur-[80px]" />
 
-          <div className="warp-core absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-300/20 blur-[110px]" />
-
-          <div className="absolute left-1/2 top-1/2 h-[100px] w-[100px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-[45px]" />
-
-          <div className="warp-vignette absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,transparent_22%,rgba(0,0,0,0.9)_100%)]" />
+          <div className="absolute bottom-0 left-1/2 h-[12vh] w-[75vw] -translate-x-1/2 rounded-[50%] bg-blue-900/20 blur-[70px]" />
         </div>
 
         {/* =====================================================

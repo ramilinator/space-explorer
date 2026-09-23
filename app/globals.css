@@ -116,3 +116,135 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+.cockpit-ui {
+  font-family: var(--font-ui), sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.cockpit-data {
+  font-family: var(--font-terminal), monospace;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* -----------------------------------------
+   REALISTIC STAR TWINKLING
+----------------------------------------- */
+
+.star-twinkle {
+  animation-name: starTwinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+
+  will-change: opacity, transform;
+}
+
+@keyframes starTwinkle {
+
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+
+  35% {
+    opacity: 0.55;
+    transform: scale(0.95);
+  }
+
+  52% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+
+  68% {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+
+  82% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+}
+
+/* -----------------------------------------
+   SHOOTING STARS
+----------------------------------------- */
+
+.shooting-star {
+  position: absolute;
+  height: 1.5px;
+  border-radius: 999px;
+  transform-origin: right center;
+
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.05) 10%,
+      rgba(180, 225, 255, 0.35) 55%,
+      rgba(255, 255, 255, 1) 100%);
+
+  filter:
+    drop-shadow(0 0 4px rgba(180, 225, 255, 0.8)) drop-shadow(0 0 12px rgba(80, 170, 255, 0.45));
+
+  opacity: 0;
+
+  animation-name: cinematicShootingStar;
+  animation-timing-function: cubic-bezier(0.2, 0, 0.6, 1);
+  animation-iteration-count: infinite;
+
+  will-change: transform, opacity;
+}
+
+.shooting-star-head {
+  position: absolute;
+  right: -1px;
+  top: 50%;
+
+  width: 3px;
+  height: 3px;
+
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  transform: translateY(-50%);
+
+  box-shadow:
+    0 0 4px #ffffff,
+    0 0 10px rgba(190, 230, 255, 1),
+    0 0 20px rgba(80, 170, 255, 0.7);
+}
+
+@keyframes cinematicShootingStar {
+  0% {
+    opacity: 0;
+    transform: translate3d(-5vw, -5vh, 0) rotate(28deg) scaleX(0.2);
+  }
+
+  2% {
+    opacity: 0;
+  }
+
+  4% {
+    opacity: 0.95;
+    transform: translate3d(0, 0, 0) rotate(28deg) scaleX(0.65);
+  }
+
+  9% {
+    opacity: 1;
+    transform: translate3d(14vw, 10vh, 0) rotate(28deg) scaleX(1);
+  }
+
+  16% {
+    opacity: 0;
+    transform: translate3d(42vw, 31vh, 0) rotate(28deg) scaleX(1.05);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(42vw, 31vh, 0) rotate(28deg) scaleX(1.05);
+  }
+}
