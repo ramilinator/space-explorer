@@ -155,6 +155,8 @@ export default function CinematicHero() {
   const launchFlash = useRef<HTMLDivElement>(null);
   const shootingStarLayer = useRef<HTMLDivElement>(null);
 
+  const shipFloat = useRef<gsap.core.Tween | null>(null);
+
   /*
    * =============================================================
    * HUD REFS
@@ -191,6 +193,7 @@ export default function CinematicHero() {
    */
 
   const ambientAudio = useRef<HTMLAudioElement | null>(null);
+  const engineHum = useRef<HTMLAudioElement | null>(null);
   const scanAudio = useRef<HTMLAudioElement | null>(null);
   const navigationAudio = useRef<HTMLAudioElement | null>(null);
   const systemAudio = useRef<HTMLAudioElement | null>(null);
@@ -216,6 +219,26 @@ export default function CinematicHero() {
     });
   };
 
+  const stopCinematicAudio = () => {
+    const cinematicAudios = [
+      scanAudio.current,
+      navigationAudio.current,
+      systemAudio.current,
+      countdownAudio.current,
+      ignitionAudio.current,
+      launchAudio.current,
+      whooshAudio.current,
+      engineHum.current,
+    ];
+
+    cinematicAudios.forEach((audio) => {
+      if (!audio) return;
+
+      audio.pause();
+      audio.currentTime = 0;
+    });
+  };
+
   /*
    * =============================================================
    * MAIN EFFECT
@@ -231,6 +254,7 @@ export default function CinematicHero() {
      * ===========================================================
      */
 
+    engineHum.current = new Audio("/sounds/engine-hum.mp3");
     ambientAudio.current = new Audio("/sounds/ambient-space.mp3");
     scanAudio.current = new Audio("/sounds/scan.mp3");
     navigationAudio.current = new Audio("/sounds/navigation.mp3");
@@ -276,10 +300,10 @@ export default function CinematicHero() {
 
       gsap.set(spaceship.current, {
         y: 50,
-        scale: 0.5,
+        scale: 1,
         opacity: 1,
         rotateX: 0,
-        rotateY: 0,
+        rotateY: 10,
       });
 
       gsap.set(q(".ship-aura"), {
@@ -486,14 +510,19 @@ export default function CinematicHero() {
        * ===========================================================
        * SHIP FLOAT
        *
-       * The ship is stationary until the power-up sequence
-       * has completely finished.
+       * Created paused.
+       *
+       * The ship does NOT float while parked.
+       * It also does NOT float immediately after moving upward.
+       *
+       * It will only begin when explicitly started later.
        * ===========================================================
        */
 
       const shipFloat = gsap.to(spaceship.current, {
-        y: -7,
-        duration: 2.8,
+        y: "-=14",
+        rotation: 0.7,
+        duration: 5.5,
         repeat: -1,
         yoyo: true,
         ease: "sine.inOut",
@@ -520,6 +549,15 @@ export default function CinematicHero() {
           scrub: 1.4,
           pin: true,
           anticipatePin: 1,
+
+          onUpdate: (self) => {
+            /*
+             * User has returned to the very beginning.
+             */
+            if (self.progress <= 0.001) {
+              stopCinematicAudio();
+            }
+          },
         },
       });
 
@@ -537,13 +575,15 @@ export default function CinematicHero() {
       timeline
         .addLabel("scene1")
 
-        // Hold the empty space
-        .to(
-          {},
-          {
-            duration: 2,
-          },
-        );
+        .to(spaceship.current, {
+          y: 0,
+          duration: 2,
+          ease: "power2.inOut",
+        })
+
+        .call(() => {
+          shipFloat.pause();
+        });
 
       /*
        * ===========================================================
@@ -657,6 +697,59 @@ export default function CinematicHero() {
           },
           "scene2+=1.7",
         )
+
+        /*
+         * Engine suddenly intensifies.
+         */
+        .to(q(".ship-engine-glow"), {
+          autoAlpha: 1,
+          scale: 1.18,
+          duration: 0.45,
+          ease: "power2.out",
+        })
+
+        .call(() => {
+          playSound(engineHum.current, 0.7);
+        })
+
+        /*
+         * Small ignition flame.
+         */
+        .to(q(".engine-flame"), {
+          autoAlpha: 1,
+          scaleY: 0.3,
+          scaleX: 0.75,
+          duration: 0.25,
+          ease: "power2.out",
+        })
+
+        /*
+         * Ship rises to its powered position.
+         *
+         * IMPORTANT:
+         * Floating remains paused here.
+         */
+        .to(spaceship.current, {
+          y: -120,
+          duration: 1.5,
+          ease: "power2.inOut",
+        })
+
+        /*
+         * Hold the ship completely still.
+         *
+         * No floating yet.
+         */
+        .to(
+          {},
+          {
+            duration: 1.5,
+          },
+        )
+
+        .call(() => {
+          shipFloat.play();
+        })
 
         /*
          * Status transition.
@@ -1051,10 +1144,6 @@ export default function CinematicHero() {
           "-=0.4",
         )
 
-        .call(() => {
-          shipFloat.play();
-        })
-
         /*
          * Brief anticipation pause.
          */
@@ -1083,37 +1172,6 @@ export default function CinematicHero() {
         })
 
         /*
-         * Engine suddenly intensifies.
-         */
-        .to(q(".ship-engine-glow"), {
-          autoAlpha: 1,
-          scale: 1.18,
-          duration: 0.45,
-          ease: "power2.out",
-        })
-
-        /*
-         * Small ignition flame.
-         */
-        .to(q(".engine-flame"), {
-          autoAlpha: 1,
-          scaleY: 0.3,
-          scaleX: 0.75,
-          duration: 0.25,
-          ease: "power2.out",
-        })
-
-        /*
-         * Flame grows.
-         */
-        .to(q(".engine-flame"), {
-          scaleY: 1,
-          scaleX: 1,
-          duration: 0.65,
-          ease: "power2.inOut",
-        })
-
-        /*
          * Build launch energy.
          */
         .to(launchGlow.current, {
@@ -1127,7 +1185,6 @@ export default function CinematicHero() {
          * Start engine idle only after ignition is complete.
          */
         .call(() => {
-          shipFloat.play();
           engineIdle.play();
         })
 
@@ -1246,6 +1303,16 @@ export default function CinematicHero() {
         })
 
         /*
+         * Flame grows.
+         */
+        .to(q(".engine-flame"), {
+          scaleY: 1,
+          scaleX: 1,
+          duration: 0.65,
+          ease: "power2.inOut",
+        })
+
+        /*
          * Engine becomes extremely bright.
          */
         .to(q(".ship-engine-glow"), {
@@ -1289,7 +1356,6 @@ export default function CinematicHero() {
         // Begin departure
         .call(() => {
           playSound(launchAudio.current);
-          playSound(whooshAudio.current);
         })
 
         // Hide cockpit and glow together
@@ -1302,7 +1368,7 @@ export default function CinematicHero() {
 
         // Subtle camera pull-back
         .to(shipCamera.current, {
-          scale: 1.08,
+          scale: 1,
           y: -35,
           duration: 0.6,
           ease: "power2.out",
@@ -1341,13 +1407,17 @@ export default function CinematicHero() {
         .to(
           ".hero-star-layer",
           {
-            scale: 1.15,
+            scale: 2,
             opacity: 0.65,
-            duration: 2.5,
+            duration: 4,
             ease: "power2.inOut",
           },
           "<",
         )
+
+        .call(() => {
+          playSound(whooshAudio.current);
+        })
 
         // Final deep-space hold
         .to(
@@ -1369,8 +1439,8 @@ export default function CinematicHero() {
         end: "+=9000",
 
         onUpdate: (self) => {
-          if (progressBar.current) {
-            progressBar.current.style.transform = `scaleY(${self.progress})`;
+          if (self.progress <= 0.001) {
+            stopCinematicAudio();
           }
         },
       });
@@ -1389,6 +1459,7 @@ export default function CinematicHero() {
       context.revert();
 
       ambientAudio.current?.pause();
+      engineHum.current?.pause();
       scanAudio.current?.pause();
       navigationAudio.current?.pause();
       systemAudio.current?.pause();
@@ -1398,6 +1469,7 @@ export default function CinematicHero() {
       whooshAudio.current?.pause();
 
       ambientAudio.current = null;
+      engineHum.current = null;
       scanAudio.current = null;
       navigationAudio.current = null;
       systemAudio.current = null;
@@ -2016,7 +2088,7 @@ export default function CinematicHero() {
       ==================================================== */}
 
                 <div
-                  className="absolute bottom-[-2px] left-1/2
+                  className="absolute bottom-[28px] left-1/2
           h-[8px] w-[240px]
           -translate-x-1/2
           rounded-full
