@@ -520,9 +520,17 @@ export default function CinematicHero() {
        */
 
       const shipFloat = gsap.to(spaceship.current, {
-        y: "-=14",
-        rotation: 0.7,
-        duration: 5.5,
+        y: "-=100",
+        duration: 4.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        paused: true,
+      });
+
+      const shipDrift = gsap.to(spaceship.current, {
+        rotation: 0.3,
+        duration: 6,
         repeat: -1,
         yoyo: true,
         ease: "sine.inOut",
@@ -546,7 +554,7 @@ export default function CinematicHero() {
           trigger: root.current,
           start: "top top",
           end: "+=9000",
-          scrub: 1.4,
+          scrub: 2,
           pin: true,
           anticipatePin: 1,
 
@@ -708,10 +716,6 @@ export default function CinematicHero() {
           ease: "power2.out",
         })
 
-        .call(() => {
-          playSound(engineHum.current, 0.7);
-        })
-
         /*
          * Small ignition flame.
          */
@@ -723,16 +727,8 @@ export default function CinematicHero() {
           ease: "power2.out",
         })
 
-        /*
-         * Ship rises to its powered position.
-         *
-         * IMPORTANT:
-         * Floating remains paused here.
-         */
-        .to(spaceship.current, {
-          y: -120,
-          duration: 1.5,
-          ease: "power2.inOut",
+        .call(() => {
+          playSound(engineHum.current, 0.7);
         })
 
         /*
@@ -743,12 +739,13 @@ export default function CinematicHero() {
         .to(
           {},
           {
-            duration: 1.5,
+            duration: 0.5,
           },
         )
 
         .call(() => {
           shipFloat.play();
+          shipDrift.play();
         })
 
         /*
@@ -780,7 +777,7 @@ export default function CinematicHero() {
         .to(
           {},
           {
-            duration: 1.2,
+            duration: 2,
           },
         );
 
