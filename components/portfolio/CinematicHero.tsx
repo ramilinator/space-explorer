@@ -693,29 +693,6 @@ export default function CinematicHero() {
 
       /*
        * ===========================================================
-       * SCENE 3
-       * SHIP FLOAT
-       *
-       * Only now does the spacecraft become physically active.
-       * ===========================================================
-       */
-
-      timeline
-        .addLabel("scene3")
-
-        .call(() => {
-          shipFloat.play();
-        })
-
-        .to(
-          {},
-          {
-            duration: 1.8,
-          },
-        );
-
-      /*
-       * ===========================================================
        * SCENE 4
        * WELCOME PASSENGER
        *
@@ -1015,7 +992,14 @@ export default function CinematicHero() {
           autoAlpha: 0,
           duration: 0.7,
           ease: "power2.inOut",
-        });
+        })
+
+        .to(
+          {},
+          {
+            duration: 1.8,
+          },
+        );
 
       /*
        * ===========================================================
@@ -1066,6 +1050,10 @@ export default function CinematicHero() {
           },
           "-=0.4",
         )
+
+        .call(() => {
+          shipFloat.play();
+        })
 
         /*
          * Brief anticipation pause.
@@ -1126,14 +1114,6 @@ export default function CinematicHero() {
         })
 
         /*
-         * Start engine idle only after ignition is complete.
-         */
-        .call(() => {
-          shipFloat.play();
-          engineIdle.play();
-        })
-
-        /*
          * Build launch energy.
          */
         .to(launchGlow.current, {
@@ -1141,6 +1121,14 @@ export default function CinematicHero() {
           scale: 0.65,
           duration: 0.9,
           ease: "power2.out",
+        })
+
+        /*
+         * Start engine idle only after ignition is complete.
+         */
+        .call(() => {
+          shipFloat.play();
+          engineIdle.play();
         })
 
         /*
@@ -1253,6 +1241,10 @@ export default function CinematicHero() {
       timeline
         .addLabel("scene11")
 
+        .call(() => {
+          shipFloat.pause();
+        })
+
         /*
          * Engine becomes extremely bright.
          */
@@ -1288,127 +1280,76 @@ export default function CinematicHero() {
         );
 
       /*
-       * ===========================================================
-       * SCENE 12
-       * LAUNCH
-       *
-       * Everything before this point is stationary.
-       *
-       * Now the spacecraft actually leaves.
-       * ===========================================================
+       * ---------------------------------------------------------
+       * SCENE 12 — DEPARTURE / FLY INTO DEEP SPACE
+       * ---------------------------------------------------------
        */
 
       timeline
-        .addLabel("scene12")
-
-        /*
-         * Launch audio begins exactly with movement.
-         */
+        // Begin departure
         .call(() => {
-          playSound(launchAudio.current, 0.9);
-          playSound(whooshAudio.current, 0.55);
+          playSound(launchAudio.current);
+          playSound(whooshAudio.current);
         })
 
-        /*
-         * Camera begins following the launch.
-         */
-        .to(shipCamera.current, {
-          scale: 1.7,
-          y: 20,
-          duration: 1.7,
+        // Hide cockpit and glow together
+        .to(cockpit.current, {
+          opacity: 0,
+          scale: 1.03,
+          duration: 1.2,
           ease: "power2.inOut",
         })
 
-        /*
-         * Stars begin accelerating.
-         */
-        .to(
-          q(".hero-star-layer"),
-          {
-            scale: 1.3,
-            opacity: 0.2,
-            duration: 1.4,
-            ease: "power3.in",
-          },
-          "-=1.5",
-        )
-
-        /*
-         * Spacecraft launches upward.
-         */
-        .to(
-          spaceship.current,
-          {
-            y: -950,
-            opacity: 0,
-            scale: 1.35,
-            duration: 2.4,
-            ease: "power3.in",
-          },
-          "-=1.2",
-        )
-
-        /*
-         * Camera shake.
-         */
-        .to(
-          q(".launch-camera"),
-          {
-            x: -6,
-            duration: 0.04,
-            repeat: 12,
-            yoyo: true,
-            ease: "none",
-          },
-          "-=1.5",
-        )
-
-        /*
-         * Launch glow fades behind the ship.
-         */
-        .to(
-          q(".launch-glow"),
-          {
-            opacity: 0,
-            duration: 0.7,
-            ease: "power3.in",
-          },
-          "-=1.2",
-        )
-
-        /*
-         * Shooting stars disappear into the launch.
-         */
-        .to(
-          shootingStarLayer.current,
-          {
-            autoAlpha: 0,
-            duration: 0.8,
-            ease: "power2.inOut",
-          },
-          "-=1",
-        )
-
-        /*
-         * Launch flash.
-         */
-        .to(
-          launchFlash.current,
-          {
-            opacity: 1,
-            duration: 0.12,
-          },
-          "-=0.7",
-        )
-
-        .to(launchFlash.current, {
-          opacity: 0,
+        // Subtle camera pull-back
+        .to(shipCamera.current, {
+          scale: 1.08,
+          y: -35,
           duration: 0.6,
+          ease: "power2.out",
         })
 
-        /*
-         * Final empty-space hold.
-         */
+        .to(
+          launchGlow.current,
+          {
+            opacity: 0,
+            scale: 0.8,
+            duration: 0.8,
+            ease: "power2.in",
+          },
+          "<",
+        )
+
+        // Ship flies forward into deep space
+        .to(spaceship.current, {
+          // Subtle trajectory
+          y: -35,
+
+          // Move away from the viewer
+          z: -1200,
+
+          // Get smaller as it travels into the distance
+          scale: 0.025,
+
+          // Eventually disappear
+          opacity: 0,
+
+          duration: 4,
+          ease: "power3.in",
+        })
+
+        // Stars subtly react to the ship's departure
+        .to(
+          ".hero-star-layer",
+          {
+            scale: 1.15,
+            opacity: 0.65,
+            duration: 2.5,
+            ease: "power2.inOut",
+          },
+          "<",
+        )
+
+        // Final deep-space hold
         .to(
           {},
           {
