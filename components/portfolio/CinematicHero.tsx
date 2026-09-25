@@ -148,6 +148,7 @@ export default function CinematicHero() {
    * =============================================================
    */
 
+  const sceneWorld = useRef<HTMLDivElement>(null);
   const spaceship = useRef<HTMLDivElement>(null);
   const shipCamera = useRef<HTMLDivElement>(null);
 
@@ -193,12 +194,14 @@ export default function CinematicHero() {
    */
 
   const ambientAudio = useRef<HTMLAudioElement | null>(null);
+
   const engineHum = useRef<HTMLAudioElement | null>(null);
+  const engineFlickerAudio = useRef<HTMLAudioElement | null>(null);
+
   const scanAudio = useRef<HTMLAudioElement | null>(null);
   const navigationAudio = useRef<HTMLAudioElement | null>(null);
   const systemAudio = useRef<HTMLAudioElement | null>(null);
   const countdownAudio = useRef<HTMLAudioElement | null>(null);
-  const ignitionAudio = useRef<HTMLAudioElement | null>(null);
   const launchAudio = useRef<HTMLAudioElement | null>(null);
   const whooshAudio = useRef<HTMLAudioElement | null>(null);
 
@@ -225,10 +228,10 @@ export default function CinematicHero() {
       navigationAudio.current,
       systemAudio.current,
       countdownAudio.current,
-      ignitionAudio.current,
       launchAudio.current,
       whooshAudio.current,
       engineHum.current,
+      engineFlickerAudio.current,
     ];
 
     cinematicAudios.forEach((audio) => {
@@ -254,18 +257,60 @@ export default function CinematicHero() {
      * ===========================================================
      */
 
-    engineHum.current = new Audio("/sounds/engine-hum.mp3");
-    ambientAudio.current = new Audio("/sounds/ambient-space.mp3");
+    engineHum.current = new Audio("/sounds/engine-on.mp3");
+    engineFlickerAudio.current = new Audio("/sounds/engine-rev.mp3");
+
+    ambientAudio.current = new Audio("/sounds/space-atmosphere.mp3");
     scanAudio.current = new Audio("/sounds/scan.mp3");
     navigationAudio.current = new Audio("/sounds/navigation.mp3");
     systemAudio.current = new Audio("/sounds/system-beep.mp3");
     countdownAudio.current = new Audio("/sounds/countdown.mp3");
-    ignitionAudio.current = new Audio("/sounds/ignition.mp3");
     launchAudio.current = new Audio("/sounds/launch.mp3");
     whooshAudio.current = new Audio("/sounds/whoosh.mp3");
 
+    /*
+     * -----------------------------------------------------------
+     * AMBIENT SPACE
+     * -----------------------------------------------------------
+     */
+
     ambientAudio.current.loop = true;
     ambientAudio.current.volume = 0.18;
+
+    /*
+     * -----------------------------------------------------------
+     * STEADY ENGINE HUM
+     *
+     * Runs continuously once the spacecraft powers up.
+     * -----------------------------------------------------------
+     */
+
+    engineHum.current.loop = true;
+    engineHum.current.volume = 0.55;
+
+    /*
+     * -----------------------------------------------------------
+     * RAPID ENGINE FLICKER
+     *
+     * Runs continuously during the rapid engine ignition phase.
+     * -----------------------------------------------------------
+     */
+
+    engineFlickerAudio.current.loop = true;
+    engineFlickerAudio.current.volume = 0.45;
+
+    /*
+     * -----------------------------------------------------------
+     * OTHER AUDIO LEVELS
+     * -----------------------------------------------------------
+     */
+
+    scanAudio.current.volume = 0.45;
+    navigationAudio.current.volume = 0.4;
+    systemAudio.current.volume = 0.3;
+    countdownAudio.current.volume = 0.42;
+    launchAudio.current.volume = 0.8;
+    whooshAudio.current.volume = 0.75;
 
     /*
      * ===========================================================
@@ -301,7 +346,7 @@ export default function CinematicHero() {
       gsap.set(spaceship.current, {
         y: 50,
         scale: 1,
-        opacity: 1,
+        opacity: 0,
         rotateX: 0,
         rotateY: 10,
       });
@@ -539,13 +584,19 @@ export default function CinematicHero() {
 
       /*
        * ===========================================================
-       * MASTER TIMELINE
+       * MASTER CINEMATIC TIMELINE
        *
-       * Long timeline = more cinematic scrolling.
+       * 9 SCENE STRUCTURE
        *
-       * Every scene is separated deliberately.
-       * No duplicate labels.
-       * No scene is responsible for starting another scene.
+       * 01 — COCKPIT / VIEW DECK
+       * 02 — SHIP REVEAL / CAMERA APPROACH
+       * 03 — COUNTDOWN
+       * 04 — ENGINE PREPARATION
+       * 05 — ENGINE IGNITION
+       * 06 — ENGINE IDLE / FLICKER
+       * 07 — FINAL IGNITION
+       * 08 — DEPARTURE
+       * 09 — DEEP SPACE HOLD
        * ===========================================================
        */
 
@@ -560,10 +611,18 @@ export default function CinematicHero() {
 
           onUpdate: (self) => {
             /*
-             * User has returned to the very beginning.
+             * User returned completely to the top.
              */
             if (self.progress <= 0.001) {
               stopCinematicAudio();
+
+              /*
+               * Make absolutely sure the looping ship animations
+               * are disabled at the starting position.
+               */
+              shipFloat.pause();
+              shipDrift.pause();
+              engineIdle.pause();
             }
           },
         },
@@ -572,169 +631,66 @@ export default function CinematicHero() {
       /*
        * ===========================================================
        * SCENE 1
-       * DORMANT SPACECRAFT
+       * COCKPIT / VIEW DECK
        *
-       * The viewer first sees the spacecraft from far away.
+       * The viewer begins inside the spacecraft.
        *
-       * Nothing is powered on.
+       * The exterior ship is NOT the focus yet.
+       *
+       * Sequence:
+       *
+       *   cockpit
+       *      ↓
+       *   welcome
+       *      ↓
+       *   pilot identification
+       *      ↓
+       *   destination
+       *      ↓
+       *   system diagnostics
+       *      ↓
+       *   system complete
+       *
+       * The system check is the final event of Scene 1.
        * ===========================================================
        */
 
       timeline
         .addLabel("scene1")
 
-        .to(spaceship.current, {
-          y: 0,
-          duration: 2,
-          ease: "power2.inOut",
-        })
-
+        /*
+         * Make sure the ship itself remains parked and dormant
+         * while the viewer is inside the view deck.
+         */
         .call(() => {
           shipFloat.pause();
-        });
+          shipDrift.pause();
+          engineIdle.pause();
 
-      /*
-       * ===========================================================
-       * SCENE 2
-       * SPACECRAFT POWER-UP
-       *
-       * The ship is still parked.
-       *
-       * Power sequence:
-       *
-       * cockpit
-       * ↓
-       * navigation
-       * ↓
-       * side lights
-       * ↓
-       * engine housing
-       * ↓
-       * aura
-       * ↓
-       * ground reflection
-       * ↓
-       * status
-       * ===========================================================
-       */
+          if (engineHum.current) {
+            engineHum.current.pause();
+            engineHum.current.currentTime = 0;
+          }
+        })
 
-      timeline
-        .addLabel("scene2")
+        /*
+         * ---------------------------------------------------------
+         * COCKPIT ESTABLISHING SHOT
+         * ---------------------------------------------------------
+         */
+
+        .to(cockpit.current, {
+          autoAlpha: 1,
+          duration: 1.2,
+          ease: "power2.out",
+        })
 
         .call(() => {
           playSound(scanAudio.current, 0.45);
         })
 
         /*
-         * Cockpit first.
-         */
-        .to(
-          q(".ship-cockpit-light"),
-          {
-            autoAlpha: 0.85,
-            duration: 0.55,
-            ease: "power2.out",
-          },
-          "scene2",
-        )
-
-        /*
-         * Navigation lights follow.
-         */
-        .to(
-          q(".ship-nav-light"),
-          {
-            autoAlpha: 1,
-            duration: 0.35,
-            stagger: 0.16,
-            ease: "power2.out",
-          },
-          "scene2+=0.45",
-        )
-
-        /*
-         * Side lights.
-         */
-        .to(
-          q(".ship-side-light"),
-          {
-            autoAlpha: 0.9,
-            duration: 0.35,
-            stagger: 0.16,
-            ease: "power2.out",
-          },
-          "scene2+=0.8",
-        )
-
-        /*
-         * Engine housing slowly receives energy.
-         */
-        .to(
-          q(".ship-engine-glow"),
-          {
-            autoAlpha: 0.55,
-            scale: 1.04,
-            duration: 0.8,
-            ease: "power2.out",
-          },
-          "scene2+=1.1",
-        )
-
-        /*
-         * Ship aura.
-         */
-        .to(
-          q(".ship-aura"),
-          {
-            autoAlpha: 0.3,
-            duration: 1,
-            ease: "power2.out",
-          },
-          "scene2+=1.4",
-        )
-
-        /*
-         * Ground reflection.
-         */
-        .to(
-          q(".ship-ground-glow"),
-          {
-            autoAlpha: 0.25,
-            duration: 0.8,
-            ease: "power2.out",
-          },
-          "scene2+=1.7",
-        )
-
-        /*
-         * Engine suddenly intensifies.
-         */
-        .to(q(".ship-engine-glow"), {
-          autoAlpha: 1,
-          scale: 1.18,
-          duration: 0.45,
-          ease: "power2.out",
-        })
-
-        /*
-         * Small ignition flame.
-         */
-        .to(q(".engine-flame"), {
-          autoAlpha: 1,
-          scaleY: 0.3,
-          scaleX: 0.75,
-          duration: 0.25,
-          ease: "power2.out",
-        })
-
-        .call(() => {
-          playSound(engineHum.current, 0.7);
-        })
-
-        /*
-         * Hold the ship completely still.
-         *
-         * No floating yet.
+         * Small cinematic pause.
          */
         .to(
           {},
@@ -743,55 +699,11 @@ export default function CinematicHero() {
           },
         )
 
-        .call(() => {
-          shipFloat.play();
-          shipDrift.play();
-        })
-
         /*
-         * Status transition.
+         * ---------------------------------------------------------
+         * WELCOME MESSAGE
+         * ---------------------------------------------------------
          */
-        .to(
-          q(".ship-docked-status"),
-          {
-            autoAlpha: 0,
-            duration: 0.3,
-            ease: "power2.in",
-          },
-          "scene2+=2.1",
-        )
-
-        .to(
-          q(".ship-awake-status"),
-          {
-            autoAlpha: 1,
-            duration: 0.45,
-            ease: "power2.out",
-          },
-          "scene2+=2.3",
-        )
-
-        /*
-         * Hold the completed power state.
-         */
-        .to(
-          {},
-          {
-            duration: 2,
-          },
-        );
-
-      /*
-       * ===========================================================
-       * SCENE 4
-       * WELCOME PASSENGER
-       *
-       * Previous scene completely finished.
-       * ===========================================================
-       */
-
-      timeline
-        .addLabel("scene4")
 
         .set(welcome.current, {
           autoAlpha: 1,
@@ -801,19 +713,6 @@ export default function CinematicHero() {
           playSound(navigationAudio.current, 0.4);
         })
 
-        /*
-         * Small pause before interface appears.
-         */
-        .to(
-          {},
-          {
-            duration: 0.35,
-          },
-        )
-
-        /*
-         * HUD frame enters.
-         */
         .to(q(".welcome-modal"), {
           autoAlpha: 1,
           scale: 1,
@@ -822,9 +721,6 @@ export default function CinematicHero() {
           ease: "power3.out",
         })
 
-        /*
-         * Text appears line by line.
-         */
         .to(
           q(".welcome-line"),
           {
@@ -837,63 +733,40 @@ export default function CinematicHero() {
           "-=0.3",
         )
 
-        /*
-         * Hold.
-         */
         .to(
           {},
           {
-            duration: 1.2,
+            duration: 1,
           },
         )
 
-        /*
-         * Complete exit before pilot scene.
-         */
         .to(welcome.current, {
           autoAlpha: 0,
-          duration: 0.65,
+          duration: 0.55,
           ease: "power2.inOut",
         })
 
-        .to(
-          {},
-          {
-            duration: 0.45,
-          },
-        );
-
-      /*
-       * ===========================================================
-       * SCENE 5
-       * PILOT IDENTIFICATION
-       * ===========================================================
-       */
-
-      timeline
-        .addLabel("scene5")
-
-        .call(() => {
-          playSound(navigationAudio.current, 0.4);
-        })
+        /*
+         * ---------------------------------------------------------
+         * PILOT IDENTIFICATION
+         * ---------------------------------------------------------
+         */
 
         .set(pilot.current, {
           autoAlpha: 1,
         })
 
-        /*
-         * Initial scan pause.
-         */
+        .call(() => {
+          playSound(navigationAudio.current, 0.4);
+        })
+
         .to(
           {},
           {
-            duration: 0.3,
+            duration: 0.25,
           },
         )
 
-        /*
-         * Pilot data appears.
-         */
         .to(q(".pilot-line"), {
           y: 0,
           autoAlpha: 1,
@@ -902,41 +775,24 @@ export default function CinematicHero() {
           ease: "power3.out",
         })
 
-        /*
-         * Hold information on screen.
-         */
         .to(
           {},
           {
-            duration: 1.4,
+            duration: 1.2,
           },
         )
 
-        /*
-         * Remove pilot UI completely.
-         */
         .to(pilot.current, {
           autoAlpha: 0,
-          duration: 0.65,
+          duration: 0.55,
           ease: "power2.inOut",
         })
 
-        .to(
-          {},
-          {
-            duration: 0.45,
-          },
-        );
-
-      /*
-       * ===========================================================
-       * SCENE 6
-       * NAVIGATION / DESTINATION
-       * ===========================================================
-       */
-
-      timeline
-        .addLabel("scene6")
+        /*
+         * ---------------------------------------------------------
+         * DESTINATION / NAVIGATION
+         * ---------------------------------------------------------
+         */
 
         .set(destination.current, {
           autoAlpha: 1,
@@ -946,19 +802,13 @@ export default function CinematicHero() {
           playSound(navigationAudio.current, 0.4);
         })
 
-        /*
-         * Map establishes itself first.
-         */
         .to(q(".map-grid"), {
           scale: 1,
           opacity: 1,
-          duration: 1.1,
+          duration: 1,
           ease: "power3.out",
         })
 
-        /*
-         * Destination information.
-         */
         .to(
           q(".destination-line"),
           {
@@ -968,12 +818,9 @@ export default function CinematicHero() {
             stagger: 0.16,
             ease: "power3.out",
           },
-          "-=0.35",
+          "-=0.3",
         )
 
-        /*
-         * Target appears after information.
-         */
         .to(q(".map-target"), {
           scale: 1,
           opacity: 1,
@@ -981,9 +828,6 @@ export default function CinematicHero() {
           ease: "back.out(1.7)",
         })
 
-        /*
-         * Target pulse.
-         */
         .to(q(".map-target"), {
           scale: 1.12,
           duration: 0.45,
@@ -996,51 +840,30 @@ export default function CinematicHero() {
           playSound(navigationAudio.current, 0.3);
         })
 
-        /*
-         * Hold selected destination.
-         */
         .to(
           {},
           {
-            duration: 1.1,
+            duration: 0.9,
           },
         )
 
-        /*
-         * Entire navigation UI exits.
-         */
         .to(destination.current, {
           autoAlpha: 0,
-          duration: 0.7,
+          duration: 0.6,
           ease: "power2.inOut",
         })
 
-        .to(
-          {},
-          {
-            duration: 0.5,
-          },
-        );
-
-      /*
-       * ===========================================================
-       * SCENE 7
-       * SYSTEM DIAGNOSTICS
-       *
-       * This is deliberately separated from navigation.
-       * ===========================================================
-       */
-
-      timeline
-        .addLabel("scene7")
-
+        /*
+         * ---------------------------------------------------------
+         * SYSTEM DIAGNOSTICS
+         * ---------------------------------------------------------
+         *
+         * This is intentionally the FINAL part of Scene 1.
+         */
         .set(system.current, {
           autoAlpha: 1,
         })
 
-        /*
-         * System interface appears.
-         */
         .to(q(".system-line"), {
           x: 0,
           autoAlpha: 1,
@@ -1049,25 +872,16 @@ export default function CinematicHero() {
           ease: "power2.out",
         })
 
-        /*
-         * Diagnostic beeps begin after the interface appears.
-         */
         .call(() => {
           playSound(systemAudio.current, 0.3);
         })
 
-        /*
-         * Progress scan.
-         */
         .to(q(".system-progress"), {
           width: "100%",
           duration: 2.1,
           ease: "power1.inOut",
         })
 
-        /*
-         * Short completion pause.
-         */
         .to(
           {},
           {
@@ -1076,7 +890,9 @@ export default function CinematicHero() {
         )
 
         /*
-         * System interface exits.
+         * System disappears.
+         *
+         * This is the transition point into Scene 2.
          */
         .to(system.current, {
           autoAlpha: 0,
@@ -1087,122 +903,140 @@ export default function CinematicHero() {
         .to(
           {},
           {
-            duration: 1.8,
+            duration: 0.6,
           },
         );
 
       /*
        * ===========================================================
-       * SCENE 8
-       * ENGINE PREPARATION
+       * SCENE 2
+       * CINEMATIC CAMERA TILT / RISE
        *
-       * No flame yet.
+       * Smooth, continuous camera movement.
        *
-       * The ship prepares before actual ignition.
+       * The viewer starts looking toward the lower portion
+       * of the environment, then gradually rises until the
+       * spaceship becomes centered.
        * ===========================================================
        */
 
       timeline
-        .addLabel("scene8")
+        .addLabel("scene2")
 
-        /*
-         * Engine housing becomes more energetic.
-         */
-        .to(q(".ship-engine-glow"), {
-          autoAlpha: 0.85,
-          scale: 1.1,
-          duration: 0.8,
-          ease: "power2.out",
+        // -----------------------------------------------------------
+        // HIDE COCKPIT
+        // -----------------------------------------------------------
+        .to(cockpit.current, {
+          autoAlpha: 0,
+          scale: 1.02,
+          duration: 1.2,
+          ease: "power2.inOut",
         })
 
-        /*
-         * Aura expands slightly.
-         */
-        .to(
-          q(".ship-aura"),
-          {
-            autoAlpha: 0.5,
-            duration: 0.7,
-            ease: "power2.out",
-          },
-          "-=0.4",
-        )
-
-        /*
-         * Ground glow increases.
-         */
-        .to(
-          q(".ship-ground-glow"),
-          {
-            autoAlpha: 0.45,
-            duration: 0.7,
-            ease: "power2.out",
-          },
-          "-=0.4",
-        )
-
-        /*
-         * Brief anticipation pause.
-         */
-        .to(
-          {},
-          {
-            duration: 1,
-          },
-        );
-
-      /*
-       * ===========================================================
-       * SCENE 9
-       * ENGINE IGNITION
-       * ===========================================================
-       */
-
-      timeline
-        .addLabel("scene9")
-
-        /*
-         * Ignition sound starts first.
-         */
-        .call(() => {
-          playSound(ignitionAudio.current, 0.7);
+        // -----------------------------------------------------------
+        // PREPARE SHIP
+        // -----------------------------------------------------------
+        .set(spaceship.current, {
+          autoAlpha: 1,
+          scale: 1,
+          y: 0,
+          rotateX: 0,
+          rotateY: 10,
         })
 
-        /*
-         * Build launch energy.
-         */
-        .to(launchGlow.current, {
-          autoAlpha: 0.45,
-          scale: 0.65,
-          duration: 0.9,
-          ease: "power2.out",
+        // -----------------------------------------------------------
+        // INITIAL CAMERA POSITION
+        //
+        // Start low so the spaceship is initially outside
+        // the main focus of the composition.
+        // -----------------------------------------------------------
+        .set(shipCamera.current, {
+          y: 620,
+          scale: 1.08,
+          transformOrigin: "50% 100%",
         })
 
-        /*
-         * Start engine idle only after ignition is complete.
-         */
-        .call(() => {
-          engineIdle.play();
+        // -----------------------------------------------------------
+        // INITIAL STAR POSITION
+        // -----------------------------------------------------------
+        .set(".hero-star-layer", {
+          scale: 1.35,
+          y: 170,
+          opacity: 0.82,
         })
 
-        /*
-         * Hold the running engine.
-         */
+        // -----------------------------------------------------------
+        // SMALL PAUSE
+        //
+        // Allows the low-angle view to breathe before the
+        // camera begins moving.
+        // -----------------------------------------------------------
         .to(
           {},
           {
-            duration: 1.2,
+            duration: 0.6,
           },
-        );
+        )
+
+        // ===========================================================
+        // CAMERA RISE
+        //
+        // One long continuous movement rather than many small
+        // camera jumps.
+        // ===========================================================
+
+        .to(shipCamera.current, {
+          y: 0,
+          scale: 1,
+          duration: 6.5,
+          ease: "power2.inOut",
+        })
+
+        // -----------------------------------------------------------
+        // STARS MOVE WITH THE CAMERA
+        //
+        // The movement is slightly slower than the camera so
+        // the scene develops a subtle sense of depth.
+        // -----------------------------------------------------------
+        .to(
+          ".hero-star-layer",
+          {
+            scale: 2,
+            y: 0,
+            opacity: 0.65,
+            duration: 6.5,
+            ease: "power1.inOut",
+          },
+          "<",
+        )
+
+        // -----------------------------------------------------------
+        // FINAL CAMERA SETTLE
+        //
+        // Very small movement to avoid an abrupt stop.
+        // -----------------------------------------------------------
+        .to(shipCamera.current, {
+          y: -8,
+          scale: 1.015,
+          duration: 1.2,
+          ease: "sine.out",
+        })
+
+        .to(shipCamera.current, {
+          y: 0,
+          scale: 1,
+          duration: 1.4,
+          ease: "sine.inOut",
+        });
 
       /*
        * ===========================================================
-       * SCENE 10
+       * SCENE 3
        * COUNTDOWN
        *
-       * The countdown gets its own isolated scene.
+       * ONLY countdown.
        *
-       * No launch movement happens here.
+       * There is no second countdown later.
        * ===========================================================
        */
 
@@ -1210,15 +1044,12 @@ export default function CinematicHero() {
       lastCountdownValue.current = 10;
 
       timeline
-        .addLabel("scene10")
+        .addLabel("scene3")
 
         .set(countdown.current, {
           autoAlpha: 1,
         })
 
-        /*
-         * Countdown UI enters.
-         */
         .to(q(".countdown-line"), {
           y: 0,
           autoAlpha: 1,
@@ -1228,7 +1059,7 @@ export default function CinematicHero() {
         })
 
         /*
-         * Pause before countdown begins.
+         * Brief anticipation.
          */
         .to(
           {},
@@ -1268,7 +1099,7 @@ export default function CinematicHero() {
         })
 
         /*
-         * Countdown disappears completely.
+         * Countdown disappears.
          */
         .to(countdown.current, {
           autoAlpha: 0,
@@ -1285,24 +1116,175 @@ export default function CinematicHero() {
 
       /*
        * ===========================================================
-       * SCENE 11
-       * FINAL IGNITION / LAUNCH PREPARATION
+       * SCENE 4
+       * ENGINE PREPARATION
        *
-       * This is the final moment before movement.
+       * No launch yet.
+       * No full flame yet.
        * ===========================================================
        */
 
       timeline
-        .addLabel("scene11")
+        .addLabel("scene4")
 
-        .call(() => {
-          shipFloat.pause();
+        /*
+         * Engine housing begins charging.
+         */
+        .to(q(".ship-engine-glow"), {
+          autoAlpha: 0.85,
+          scale: 1.1,
+          duration: 0.8,
+          ease: "power2.out",
         })
 
         /*
-         * Flame grows.
+         * Aura expands.
+         */
+        .to(
+          q(".ship-aura"),
+          {
+            autoAlpha: 0.5,
+            duration: 0.7,
+            ease: "power2.out",
+          },
+          "-=0.4",
+        )
+
+        /*
+         * Ground glow increases.
+         */
+        .to(
+          q(".ship-ground-glow"),
+          {
+            autoAlpha: 0.45,
+            duration: 0.7,
+            ease: "power2.out",
+          },
+          "-=0.4",
+        )
+
+        /*
+         * Engine preparation hold.
+         */
+        .to(
+          {},
+          {
+            duration: 1,
+          },
+        );
+
+      /*
+       * ===========================================================
+       * SCENE 5
+       * ENGINE IGNITION
+       *
+       * Ignition starts.
+       * Launch energy begins building.
+       * ===========================================================
+       */
+
+      timeline
+        .addLabel("scene5")
+
+        .call(() => {
+          playSound(engineFlickerAudio.current, 0.7);
+        })
+
+        /*
+         * Launch energy begins.
+         */
+        .to(launchGlow.current, {
+          autoAlpha: 0.45,
+          scale: 0.65,
+          duration: 0.9,
+          ease: "power2.out",
+        })
+
+        /*
+         * Engine flame begins to respond.
          */
         .to(q(".engine-flame"), {
+          autoAlpha: 1,
+          scaleY: 0.5,
+          scaleX: 0.82,
+          duration: 0.45,
+          ease: "power2.out",
+        })
+
+        /*
+         * Brief ignition hold.
+         */
+        .to(
+          {},
+          {
+            duration: 0.6,
+          },
+        );
+
+      /*
+       * ===========================================================
+       * SCENE 6
+       * ENGINE IDLE / FLICKER
+       *
+       * Rapid visual engine flicker.
+       *
+       * This is deliberately separate from the actual full-thrust
+       * ignition in Scene 7.
+       * ===========================================================
+       */
+
+      timeline
+        .addLabel("scene6")
+
+        /*
+         * Start the rapid visual flame flicker.
+         */
+        .call(() => {
+          engineIdle.play();
+        })
+
+        /*
+         * Hold the running engine.
+         */
+        .to(
+          {},
+          {
+            duration: 1.8,
+          },
+        );
+
+      /*
+       * ===========================================================
+       * SCENE 7
+       * FINAL IGNITION
+       *
+       * The engine transitions from flickering idle to full thrust.
+       * ===========================================================
+       */
+
+      timeline
+        .addLabel("scene7")
+
+        /*
+         * Stop floating before launch.
+         */
+        .call(() => {
+          shipFloat.pause();
+          shipDrift.pause();
+        })
+
+        /*
+         * Stop idle flicker.
+         */
+        .call(() => {
+          engineIdle.pause();
+        })
+
+        /*
+         * Full engine flame.
+         */
+        .to(q(".engine-flame"), {
+          autoAlpha: 1,
           scaleY: 1,
           scaleX: 1,
           duration: 0.65,
@@ -1334,7 +1316,7 @@ export default function CinematicHero() {
         )
 
         /*
-         * Short tension hold.
+         * Final tension hold.
          */
         .to(
           {},
@@ -1344,18 +1326,32 @@ export default function CinematicHero() {
         );
 
       /*
-       * ---------------------------------------------------------
-       * SCENE 12 — DEPARTURE / FLY INTO DEEP SPACE
-       * ---------------------------------------------------------
+       * ===========================================================
+       * SCENE 8
+       * DEPARTURE
+       *
+       * The spacecraft finally leaves.
+       * ===========================================================
        */
 
       timeline
-        // Begin departure
+        .addLabel("scene8")
+
+        /*
+         * Launch sound.
+         */
         .call(() => {
+          if (engineHum.current) {
+            engineHum.current.pause();
+            engineHum.current.currentTime = 0;
+          }
+
           playSound(launchAudio.current);
         })
 
-        // Hide cockpit and glow together
+        /*
+         * Hide cockpit / surrounding launch interface.
+         */
         .to(cockpit.current, {
           opacity: 0,
           scale: 1.03,
@@ -1363,7 +1359,9 @@ export default function CinematicHero() {
           ease: "power2.inOut",
         })
 
-        // Subtle camera pull-back
+        /*
+         * Camera pulls back slightly.
+         */
         .to(shipCamera.current, {
           scale: 1,
           y: -35,
@@ -1371,6 +1369,9 @@ export default function CinematicHero() {
           ease: "power2.out",
         })
 
+        /*
+         * Launch glow fades into the launch.
+         */
         .to(
           launchGlow.current,
           {
@@ -1382,25 +1383,21 @@ export default function CinematicHero() {
           "<",
         )
 
-        // Ship flies forward into deep space
+        /*
+         * Spacecraft launches into deep space.
+         */
         .to(spaceship.current, {
-          // Subtle trajectory
           y: -35,
-
-          // Move away from the viewer
           z: -1200,
-
-          // Get smaller as it travels into the distance
           scale: 0.025,
-
-          // Eventually disappear
           opacity: 0,
-
           duration: 4,
           ease: "power3.in",
         })
 
-        // Stars subtly react to the ship's departure
+        /*
+         * Stars react to departure.
+         */
         .to(
           ".hero-star-layer",
           {
@@ -1414,13 +1411,26 @@ export default function CinematicHero() {
 
         .call(() => {
           playSound(whooshAudio.current);
-        })
+        });
 
-        // Final deep-space hold
+      /*
+       * ===========================================================
+       * SCENE 9
+       * DEEP-SPACE HOLD
+       *
+       * Final cinematic moment.
+       *
+       * No additional launch sequence.
+       * ===========================================================
+       */
+
+      timeline
+        .addLabel("scene9")
+
         .to(
           {},
           {
-            duration: 1.5,
+            duration: 1.8,
           },
         );
 
@@ -1443,35 +1453,43 @@ export default function CinematicHero() {
       });
     }, root);
 
-    /*
-     * ===========================================================
-     * CLEANUP
-     *
-     * No manual DOM manipulation.
-     * GSAP context owns the animations.
-     * ===========================================================
-     */
-
     return () => {
       context.revert();
 
+      /*
+       * -----------------------------------------------------------
+       * STOP ALL AUDIO
+       * -----------------------------------------------------------
+       */
+
       ambientAudio.current?.pause();
       engineHum.current?.pause();
+      engineFlickerAudio.current?.pause();
+
       scanAudio.current?.pause();
       navigationAudio.current?.pause();
       systemAudio.current?.pause();
       countdownAudio.current?.pause();
-      ignitionAudio.current?.pause();
+
       launchAudio.current?.pause();
       whooshAudio.current?.pause();
 
+      /*
+       * -----------------------------------------------------------
+       * RESET AUDIO REFS
+       * -----------------------------------------------------------
+       */
+
       ambientAudio.current = null;
+
       engineHum.current = null;
+      engineFlickerAudio.current = null;
+
       scanAudio.current = null;
       navigationAudio.current = null;
       systemAudio.current = null;
       countdownAudio.current = null;
-      ignitionAudio.current = null;
+
       launchAudio.current = null;
       whooshAudio.current = null;
     };
@@ -1617,7 +1635,7 @@ export default function CinematicHero() {
           ========================================================= */}
           <div
             ref={spaceship}
-            className="spaceship pointer-events-none absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2"
+            className="spaceship pointer-events-none absolute left-1/2 top-[60%] -translate-x-1/2 -translate-y-1/2"
           >
             {/* =======================================================
       SHIP AURA
