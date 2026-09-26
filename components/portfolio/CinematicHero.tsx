@@ -155,6 +155,7 @@ export default function CinematicHero() {
   const launchGlow = useRef<HTMLDivElement>(null);
   const launchFlash = useRef<HTMLDivElement>(null);
   const shootingStarLayer = useRef<HTMLDivElement>(null);
+  const horizonAtmosphere = useRef<HTMLDivElement>(null);
 
   const shipFloat = useRef<gsap.core.Tween | null>(null);
 
@@ -530,6 +531,32 @@ export default function CinematicHero() {
         repeat: -1,
         yoyo: true,
         ease: "sine.inOut",
+      });
+
+      /*
+       * ===========================================================
+       * STAR LAYER
+       *
+       * ===========================================================
+       */
+
+      gsap.set(".hero-star-layer", {
+        width: "200vw",
+        height: "200vh",
+
+        left: "50%",
+        top: "50%",
+
+        xPercent: -50,
+        yPercent: -50,
+
+        // Show the TOP portion of the enlarged star field
+        y: "50vh",
+
+        x: 0,
+        scale: 1,
+
+        opacity: 0.82,
       });
 
       /*
@@ -957,15 +984,6 @@ export default function CinematicHero() {
         })
 
         // -----------------------------------------------------------
-        // INITIAL STAR POSITION
-        // -----------------------------------------------------------
-        .set(".hero-star-layer", {
-          scale: 1.35,
-          y: 170,
-          opacity: 0.82,
-        })
-
-        // -----------------------------------------------------------
         // SMALL PAUSE
         //
         // Allows the low-angle view to breathe before the
@@ -1001,8 +1019,7 @@ export default function CinematicHero() {
         .to(
           ".hero-star-layer",
           {
-            scale: 2,
-            y: 0,
+            y: "0",
             opacity: 0.65,
             duration: 6.5,
             ease: "power1.inOut",
@@ -1028,6 +1045,17 @@ export default function CinematicHero() {
           duration: 1.4,
           ease: "sine.inOut",
         })
+
+        // Horizon becomes visible shortly after the descent begins
+        .to(
+          horizonAtmosphere.current,
+          {
+            autoAlpha: 1,
+            duration: 1.4,
+            ease: "power2.out",
+          },
+          "<1",
+        )
 
         // -----------------------------------------------------------
         // COCKPIT POWER
@@ -1641,11 +1669,14 @@ export default function CinematicHero() {
           ))}
         </div>
 
-        {/* =====================================================
-            HORIZON ATMOSPHERE
-        ====================================================== */}
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-[48%]">
+        {/* =========================================================
+    HORIZON ATMOSPHERE
+    Visible only while the spaceship is parked
+========================================================= */}
+        <div
+          ref={horizonAtmosphere}
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-[48%] opacity-0"
+        >
           <div className="absolute inset-0 bg-gradient-to-t from-[#010208] via-[#010208]/90 to-transparent" />
 
           <div className="absolute bottom-[18%] left-1/2 h-[18vh] w-[85vw] -translate-x-1/2 rounded-[50%] bg-cyan-500/[0.025] blur-[80px]" />
