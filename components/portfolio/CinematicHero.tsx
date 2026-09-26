@@ -345,7 +345,7 @@ export default function CinematicHero() {
        */
 
       gsap.set(spaceship.current, {
-        y: 50,
+        y: 0,
         scale: 1,
         opacity: 0,
         rotateX: 0,
@@ -541,7 +541,7 @@ export default function CinematicHero() {
        */
 
       gsap.set(".hero-star-layer", {
-        width: "200vw",
+        width: "100vw",
         height: "200vh",
 
         left: "50%",
@@ -554,7 +554,7 @@ export default function CinematicHero() {
         y: "50vh",
 
         x: 0,
-        scale: 1,
+        scale: 0.8,
 
         opacity: 0.82,
       });
@@ -580,6 +580,44 @@ export default function CinematicHero() {
 
       /*
        * ===========================================================
+       * ENGINE BURST
+       *
+       * A short explosive thrust burst used only when the ship
+       * actually launches.
+       *
+       * It does NOT loop.
+       * ===========================================================
+       */
+
+      const engineBurst = gsap.timeline({ paused: true });
+
+      engineBurst
+        .set(q(".engine-flame"), {
+          autoAlpha: 1,
+          scaleX: 1,
+          scaleY: 1,
+        })
+        .to(q(".engine-flame"), {
+          scaleY: 2.8,
+          scaleX: 1.12,
+          duration: 0.12,
+          ease: "power4.out",
+        })
+        .to(q(".engine-flame"), {
+          scaleY: 4.5,
+          scaleX: 1.25,
+          duration: 0.16,
+          ease: "power3.in",
+        })
+        .to(q(".engine-flame"), {
+          scaleY: 1.4,
+          scaleX: 1,
+          duration: 0.3,
+          ease: "power3.out",
+        });
+
+      /*
+       * ===========================================================
        * SHIP FLOAT
        *
        * Created paused.
@@ -592,12 +630,12 @@ export default function CinematicHero() {
        */
 
       const shipFloat = gsap.to(spaceship.current, {
-        y: "-=100",
-        duration: 4.5,
-        repeat: -1,
-        yoyo: true,
+        y: -1,
+        duration: 0.1,
         ease: "sine.inOut",
         paused: true,
+        repeat: -1,
+        yoyo: true,
       });
 
       const shipDrift = gsap.to(spaceship.current, {
@@ -650,6 +688,7 @@ export default function CinematicHero() {
               shipFloat.pause();
               shipDrift.pause();
               engineIdle.pause();
+              engineBurst.pause();
             }
           },
         },
@@ -693,6 +732,7 @@ export default function CinematicHero() {
           shipFloat.pause();
           shipDrift.pause();
           engineIdle.pause();
+          engineBurst.pause();
 
           if (engineHum.current) {
             engineHum.current.pause();
@@ -937,13 +977,13 @@ export default function CinematicHero() {
       /*
        * ===========================================================
        * SCENE 2
-       * CINEMATIC CAMERA TILT / RISE
+       * CINEMATIC CAMERA DESCENT / PARKED SHIP REVEAL
        *
-       * Smooth, continuous camera movement.
+       * The viewer starts high above the environment and gradually
+       * descends toward the parked spaceship.
        *
-       * The viewer starts looking toward the lower portion
-       * of the environment, then gradually rises until the
-       * spaceship becomes centered.
+       * The stars move upward while the camera descends, creating
+       * the feeling of traveling from the sky toward the ground.
        * ===========================================================
        */
 
@@ -974,93 +1014,80 @@ export default function CinematicHero() {
         // -----------------------------------------------------------
         // INITIAL CAMERA POSITION
         //
-        // Start low so the spaceship is initially outside
-        // the main focus of the composition.
+        // Start high above the parked spaceship.
+        // The ship is initially lower in the composition.
         // -----------------------------------------------------------
         .set(shipCamera.current, {
-          y: 620,
-          scale: 1.08,
+          y: 2200,
+          scale: 1.35,
           transformOrigin: "50% 100%",
         })
 
         // -----------------------------------------------------------
         // SMALL PAUSE
         //
-        // Allows the low-angle view to breathe before the
-        // camera begins moving.
+        // Gives the viewer a moment to see the environment
+        // before the descent begins.
         // -----------------------------------------------------------
         .to(
           {},
           {
-            duration: 0.6,
+            duration: 0.8,
           },
         )
 
         // ===========================================================
-        // CAMERA RISE
+        // LONG CINEMATIC CAMERA DESCENT
         //
-        // One long continuous movement rather than many small
-        // camera jumps.
+        // Increased from 6.5s → 10s.
+        //
+        // This is now the main visual movement of Scene 2.
         // ===========================================================
-
         .to(shipCamera.current, {
-          y: 0,
+          y: -35,
           scale: 1,
-          duration: 6.5,
+          duration: 30,
           ease: "power2.inOut",
         })
 
         // -----------------------------------------------------------
-        // STARS MOVE WITH THE CAMERA
+        // STARS MOVE UPWARD WITH THE CAMERA
         //
-        // The movement is slightly slower than the camera so
-        // the scene develops a subtle sense of depth.
+        // Same duration keeps the star field synchronized with
+        // the camera descent.
         // -----------------------------------------------------------
         .to(
           ".hero-star-layer",
           {
-            y: "0",
+            y: 0,
+            scale: 1,
             opacity: 0.65,
-            duration: 6.5,
+            duration: 30,
             ease: "power1.inOut",
           },
           "<",
         )
 
-        // -----------------------------------------------------------
-        // FINAL CAMERA SETTLE
+        // ===========================================================
+        // HORIZON ATMOSPHERE APPEARS
         //
-        // Very small movement to avoid an abrupt stop.
-        // -----------------------------------------------------------
-        .to(shipCamera.current, {
-          y: -8,
-          scale: 1.015,
-          duration: 1.2,
-          ease: "sine.out",
-        })
-
-        .to(shipCamera.current, {
-          y: 0,
-          scale: 1,
-          duration: 1.4,
-          ease: "sine.inOut",
-        })
-
-        // Horizon becomes visible shortly after the descent begins
+        // Begin revealing the ground/horizon as the camera starts
+        // descending.
+        // ===========================================================
         .to(
           horizonAtmosphere.current,
           {
+            opacity: 1,
             autoAlpha: 1,
-            duration: 1.4,
+            duration: 30,
             ease: "power2.out",
           },
-          "<1",
+          "<",
         )
 
         // -----------------------------------------------------------
         // COCKPIT POWER
         // -----------------------------------------------------------
-
         .to(q(".ship-cockpit-light"), {
           autoAlpha: 1,
           duration: 0.8,
@@ -1070,7 +1097,6 @@ export default function CinematicHero() {
         // -----------------------------------------------------------
         // SIDE ENGINE-POD LIGHTS
         // -----------------------------------------------------------
-
         .to(
           q(".ship-side-light"),
           {
@@ -1084,7 +1110,6 @@ export default function CinematicHero() {
         // -----------------------------------------------------------
         // NAVIGATION LIGHTS
         // -----------------------------------------------------------
-
         .to(
           q(".ship-nav-light"),
           {
@@ -1098,7 +1123,6 @@ export default function CinematicHero() {
         // -----------------------------------------------------------
         // SHIP AURA
         // -----------------------------------------------------------
-
         .to(
           q(".ship-aura"),
           {
@@ -1112,10 +1136,8 @@ export default function CinematicHero() {
         // -----------------------------------------------------------
         // INITIAL ENGINE POWER
         //
-        // This is NOT the flame.
-        // It is only the internal engine glow.
+        // Internal glow only — NOT the engine flame.
         // -----------------------------------------------------------
-
         .to(
           q(".ship-engine-glow"),
           {
@@ -1347,6 +1369,7 @@ export default function CinematicHero() {
         .call(() => {
           engineIdle.play();
         })
+        // Start gentle spacecraft floating
 
         /*
          * Hold the running engine.
@@ -1369,21 +1392,6 @@ export default function CinematicHero() {
 
       timeline
         .addLabel("scene7")
-
-        /*
-         * Stop floating before launch.
-         */
-        .call(() => {
-          shipFloat.pause();
-          shipDrift.pause();
-        })
-
-        /*
-         * Stop idle flicker.
-         */
-        .call(() => {
-          engineIdle.pause();
-        })
 
         /*
          * Full engine flame.
@@ -1434,8 +1442,6 @@ export default function CinematicHero() {
        * ===========================================================
        * SCENE 8
        * DEPARTURE
-       *
-       * The spacecraft finally leaves.
        * ===========================================================
        */
 
@@ -1443,7 +1449,9 @@ export default function CinematicHero() {
         .addLabel("scene8")
 
         /*
-         * Launch sound.
+         * -----------------------------------------------------------
+         * LAUNCH AUDIO
+         * -----------------------------------------------------------
          */
         .call(() => {
           if (engineHum.current) {
@@ -1455,32 +1463,27 @@ export default function CinematicHero() {
         })
 
         /*
-         * Hide cockpit / surrounding launch interface.
+         * -----------------------------------------------------------
+         * SHIP LAUNCHES
+         *
+         * Start from the highest floating position.
+         * -----------------------------------------------------------
          */
-        .to(cockpit.current, {
-          opacity: 0,
-          scale: 1.03,
-          duration: 1.2,
-          ease: "power2.inOut",
+        .to(spaceship.current, {
+          y: -100,
+          duration: 3,
+          ease: "power3.in",
         })
 
         /*
-         * Camera pulls back slightly.
-         */
-        .to(shipCamera.current, {
-          scale: 1,
-          y: -35,
-          duration: 0.6,
-          ease: "power2.out",
-        })
-
-        /*
-         * Launch glow fades into the launch.
+         * -----------------------------------------------------------
+         * LAUNCH GLOW
+         * -----------------------------------------------------------
          */
         .to(
           launchGlow.current,
           {
-            opacity: 0,
+            autoAlpha: 0,
             scale: 0.8,
             duration: 0.8,
             ease: "power2.in",
@@ -1489,19 +1492,34 @@ export default function CinematicHero() {
         )
 
         /*
-         * Spacecraft launches into deep space.
+         * -----------------------------------------------------------
+         * ENGINE BURST
+         *
+         * Explosive thrust happens first.
+         * -----------------------------------------------------------
+         */
+        .call(() => {
+          engineBurst.restart();
+        })
+
+        /*
+         * -----------------------------------------------------------
+         * DEEP-SPACE DEPARTURE
+         * -----------------------------------------------------------
          */
         .to(spaceship.current, {
-          y: -35,
+          y: -100,
           z: -1200,
           scale: 0.025,
-          opacity: 0,
+          autoAlpha: 0,
           duration: 4,
           ease: "power3.in",
         })
 
         /*
-         * Stars react to departure.
+         * -----------------------------------------------------------
+         * STAR FIELD REACTION
+         * -----------------------------------------------------------
          */
         .to(
           ".hero-star-layer",
@@ -1675,7 +1693,7 @@ export default function CinematicHero() {
 ========================================================= */}
         <div
           ref={horizonAtmosphere}
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-[48%] opacity-0"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-[40%] opacity-0"
         >
           <div className="absolute inset-0 bg-gradient-to-t from-[#010208] via-[#010208]/90 to-transparent" />
 
@@ -1743,7 +1761,7 @@ export default function CinematicHero() {
           ========================================================= */}
           <div
             ref={spaceship}
-            className="spaceship pointer-events-none absolute left-1/2 top-[60%] -translate-x-1/2 -translate-y-1/2"
+            className="spaceship pointer-events-none absolute left-1/2 top-[70%] -translate-x-1/2 -translate-y-1/2"
           >
             {/* =======================================================
       SHIP AURA
@@ -2193,16 +2211,18 @@ export default function CinematicHero() {
                   />
 
                   {/* Engine flame */}
-
                   <div
-                    className="engine-flame absolute bottom-[-8px] left-1/2
-            h-[28px] w-[42px]
-            -translate-x-1/2
-            origin-top
-            rounded-[50%]
-            bg-white
-            opacity-0
-            shadow-[0_0_22px_rgba(34,211,238,1)]"
+                    className="
+    engine-flame
+    absolute bottom-[-18px] left-1/2
+    h-[42px] w-[76px]
+    -translate-x-1/2
+    origin-top
+    rounded-[9px]
+    bg-white
+    opacity-0
+    shadow-[0_0_12px_rgba(255,255,255,0.95),0_0_30px_rgba(34,211,238,0.95),0_0_55px_rgba(34,211,238,0.45)]
+  "
                   />
                 </div>
 
